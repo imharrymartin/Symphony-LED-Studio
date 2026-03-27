@@ -1,0 +1,60 @@
+Input thread launched natively.
+STDIN RECV: '{"action": "get_mics"}\n'
+PARSED CMD: {'action': 'get_mics'}
+Input thread launched natively.
+STDIN RECV: '{"action": "get_mics"}\n'
+PARSED CMD: {'action': 'get_mics'}
+MAIN BOOTED.
+Input thread launched natively.
+STDIN RECV: '{"action": "get_mics"}\n'
+PARSED CMD: {'action': 'get_mics'}
+MAIN EXECUTING: {'action': 'get_mics'}
+MAIN BOOTED.
+Input thread launched natively.
+STDIN RECV: '{"action": "get_mics"}\n'
+PARSED CMD: None
+MAIN EXECUTING: {'action': 'get_mics'}
+MAIN BOOTED.
+Input thread launched natively.
+STDIN RECV: '{"action": "get_mics"}\n'
+PARSED CMD: {'action': 'get_mics'}
+MAIN EXECUTING: {'action': 'get_mics'}
+Fetching microphones...
+Found 13 mics.
+MAIN BOOTED.
+Input thread launched natively.
+STDIN RECV: '{"action": "get_mics"}\n'
+PARSED CMD: {'action': 'get_mics'}
+MAIN EXECUTING: {'action': 'get_mics'}
+Fetching microphones...
+Found 13 mics.
+MAIN BOOTED.
+Input thread launched natively.
+STDIN RECV: '{"action": "get_mics"}\n'
+PARSED CMD: {'action': 'get_mics'}
+MAIN EXECUTING: {'action': 'get_mics'}
+Fetching microphones...
+Found 13 mics.
+ENGINE BOOTED
+RECV CMD: {"action": "get_mics"}
+EXEC CMD: get_mics
+Calling all_microphones...
+Found 13 mics.
+ENGINE BOOTED
+RECV CMD: {"action": "get_mics"}
+EXEC CMD: get_mics
+Calling all_microphones...
+Found 13 mics.
+ENGINE BOOTED
+ENGINE BOOTED
+ENGINE BOOTED
+ENGINE BOOTED
+ENGINE BOOTED
+ENGINE BOOTED
+ENGINE BOOTED
+RECV CMD: {"action": "start", "device_id": ""}
+EXEC CMD: start
+RECV CMD: {"action": "start", "device_id": ""}
+EXEC CMD: start
+Using loopback fallback: Speakers (Focusrite USB Audio)
+Opening recorder for: Speakers (Focusrite USB Audio) (loopback=True)

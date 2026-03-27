@@ -1,0 +1,2 @@
+=== WORKING DEVICES ===
+[7] Headset Microphone (Oculus Virtual Audio Device) (loopback=False)

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Symphony Desktop V5</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <h1>Symphony</h1>
+        <p class="subtitle">Desktop Engine</p>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-target="dash">App</button>
+            <button class="tab-btn" data-target="colors">Colors</button>
+            <button class="tab-btn" data-target="seqs">Sequences</button>
+            <button class="tab-btn" data-target="music">Music Sync</button>
+            <button class="tab-btn" data-target="screen">Screen Sync</button>
+        </div>
+
+        <div id="view-dash" class="view active">
+            <div class="power-buttons">
+                <button id="btn-on" class="ctrl-btn success-btn">Power ON</button>
+                <button id="btn-off" class="ctrl-btn danger-btn">Power OFF</button>
+            </div>
+            <div class="card status-card">
+                <div class="system-stats">
+            <span id="system-status">Disconnected (Is server running?)</span> | 
+            <span id="bulb-status" style="color: #ff3366;">Bulb: Offline</span>
+        </div>        <p class="desc">Global hotkeys are active! Your customized colors and sequences will trigger safely anywhere on your PC.</p>
+            </div>
+            <div class="card">
+                <h3>Quick Test</h3>
+                <p class="desc">Test pure colors directly without saving.</p>
+                <input type="color" id="quick-color" value="#00ff00">
+            </div>
+        </div>
+
+        <div id="view-colors" class="view">
+            <div class="card form-card">
+                <h3>Add New Color</h3>
+                <input type="text" id="color-name" placeholder="Name (e.g. Neon Pink)">
+                <div class="color-picker-wrapper">
+                    <input type="color" id="color-hex" value="#ff00ff">
+                </div>
+                <input type="text" id="color-hotkey" class="hotkey-input" placeholder="Click here & press a key" readonly>
+                <button id="btn-save-color" class="ctrl-btn accent-btn">Save Color</button>
+                <p id="color-error" class="error-msg"></p>
+            </div>
+            <p class="section-title">Saved Colors</p>
+            <div id="colors-list" class="list-container"></div>
+        </div>
+
+        <div id="view-seqs" class="view">
+            <div class="card form-card">
+                <h3>Sequence Maker</h3>
+                <input type="text" id="seq-name" placeholder="Sequence Name (e.g. Sirens)">
+                <input type="text" id="seq-hotkey" class="hotkey-input" placeholder="Click here & press a key" readonly>
+                
+                <div class="timeline-builder">
+                    <p>Timeline Steps:</p>
+                    <div id="seq-steps-container"></div>
+                    <button id="btn-add-step" class="small-btn">+ Add Color Step</button>
+                </div>
+
+                <label style="color:#fff; font-size:0.85rem; margin-top:15px; display:inline-block; cursor:pointer;">
+                    <input type="checkbox" id="seq-loop" checked> Loop indefinitely (uncheck to return to original)
+                </label>
+
+                <button id="btn-save-seq" class="ctrl-btn accent-btn" style="margin-top:20px;">Save Sequence</button>
+                <p id="seq-error" class="error-msg"></p>
+            </div>
+            <p class="section-title">Saved Sequences</p>
+            <div id="seqs-list" class="list-container"></div>
+        </div>
+
+        <div id="view-music" class="view">
+            <div class="card form-card" style="box-shadow: 0 0 30px #ff00cc33; border-color:#ff00cc88;">
+                <h3>Audio Reactivity 🎵</h3>
+                <p class="desc" style="margin-bottom:20px;">Instantly flash your lights to the bass drops and beats of your computer's audio.</p>
+                
+                <p class="section-title">Listen to Device:</p>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <select id="audio-device-select" style="flex: 1;">
+                        <option value="">Loading Audio Devices...</option>
+                    </select>
+                    <button id="btn-scan-devices" class="small-btn" title="Rescan hardware" style="width: auto; padding: 0 12px; height: 42px;">🔄</button>
+                </div>
+
+                <p class="section-title">Global Audio Preset:</p>
+                <select id="audio-preset" style="background: rgba(0,0,0,0.6); margin-bottom: 20px;">
+                    <option value="Balanced" selected>Balanced (Ambient tracking)</option>
+                    <option value="Punchy">Punchy (Extremely aggressive bass drops!)</option>
+                    <option value="Chill">Chill (Smooth fading out)</option>
+                </select>
+
+                <p class="section-title">Base Color Filter:</p>
+                <select id="audio-color-select" style="background: rgba(0,0,0,0.6); margin-bottom: 20px;"></select>
+                
+                <div class="slider-wrapper">
+                    <span class="speed-label">Sens / Gain:</span>
+                    <input type="range" id="audio-sensitivity" class="speed-slider" min="1" max="50" value="15">
+                </div>
+
+                <div style="margin-top: 25px; display:flex; gap:10px;">
+                    <button id="btn-audio-start" class="ctrl-btn accent-btn">Start Music Sync</button>
+                    <button id="btn-audio-stop" class="ctrl-btn danger-btn" style="display:none; flex:0.4;">Stop</button>
+                </div>
+            </div>
+            
+            <div class="card status-card">
+                <p class="desc">Simply select your Headset or your Desktop Speakers from the drop-down. Symphony will natively hook into that device exclusively to guarantee flawless real-time responsiveness!</p>
+            </div>
+        </div>
+        
+        <div id="view-screen" class="view">
+            <div class="card form-card" style="box-shadow: 0 0 30px rgba(0, 210, 255, 0.2); border-color:rgba(0, 210, 255, 0.5);">
+                <h3>Screen Reactivity 📺</h3>
+                <p class="desc" style="margin-bottom:20px;">Instantly extract the dominant colors from your primary monitor and sync them to your lighting array.</p>
+                
+                <label style="color:#fff; font-size:0.85rem; margin-bottom:10px; display:inline-block; cursor:pointer;">
+                    <input type="checkbox" id="screen-audio-combine"> Combine with Audio Reactivity (Multiply Brightness by Volume)
+                </label>
+
+                <label style="color:#fff; font-size:0.85rem; margin-bottom:15px; display:inline-block; cursor:pointer;">
+                    <input type="checkbox" id="screen-scale-brightness"> Scale light power with screen brightness (dark scene = dim lights)
+                </label>
+
+                <p class="section-title">Listen to Device (If Combined):</p>
+                <select id="screen-audio-device-select" style="background: rgba(0,0,0,0.6); margin-bottom: 20px; font-size:0.85rem;">
+                    <option value="">Loading Audio Devices...</option>
+                </select>
+
+                <div class="slider-wrapper">
+                    <span class="speed-label">Sens / Gain:</span>
+                    <input type="range" id="screen-sensitivity" class="speed-slider" min="1" max="50" value="25">
+                </div>
+
+                <div class="slider-wrapper" id="min-brightness-wrap" style="display:none;">
+                    <span class="speed-label">Min Brightness (silence floor):</span>
+                    <input type="range" id="screen-min-brightness" class="speed-slider" min="0" max="100" value="0">
+                    <span id="min-brightness-val" style="color:#8b9bb4; font-size:0.8rem; margin-top:4px; display:block;">0%</span>
+                </div>
+
+                <div style="margin-top: 25px; display:flex; gap:10px;">
+                    <button id="btn-screen-start" class="ctrl-btn accent-btn" style="background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);">Start Screen Sync</button>
+                    <button id="btn-screen-stop" class="ctrl-btn danger-btn" style="display:none; flex:0.4;">Stop</button>
+                </div>
+            </div>
+            
+            <div class="card status-card">
+                <p class="desc">Symphony uses an ultra-fast hardware mathematics layer to natively pull colors without draining your CPU. Combine this with the Audio Reactivity setting to flash screen colors directly to the beat of your music or game!</p>
+            </div>
+        </div>
+
+    </div>
+    
+    <div id="rebind-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:999; justify-content:center; align-items:center; flex-direction:column; backdrop-filter: blur(10px);">
+        <h2 style="margin-bottom:5px;">Recording Hotkey</h2>
+        <p style="color:#8b9bb4; margin-bottom:20px;">Press any key combination now...</p>
+        <button onclick="document.getElementById('rebind-overlay').style.display='none'" class="small-btn">Cancel</button>
+    </div>
+
+    <script src="app.js?v=10"></script>
+</body>
+</html>
