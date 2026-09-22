@@ -128,18 +128,71 @@
             </div>
 
             <div class="card form-card">
-                <h3>
-                    <i data-lucide="radio"></i>
-                    <span>Spotify API Synchronization</span>
-                </h3>
-                <p class="desc" style="margin-bottom: 14px;">Link Spotify developer credentials to lock the DAW Arranger and beat synchronizer to playback.</p>
-                <input type="text" id="spotify-client-id" placeholder="Spotify Client ID">
-                <input type="password" id="spotify-client-secret" placeholder="Spotify Client Secret">
-                <button id="btn-spotify-login" class="ctrl-btn accent-btn" style="margin-top: 8px;">
-                    <i data-lucide="key"></i>
-                    <span>Save & Authenticate Spotify</span>
-                </button>
-                <p id="spotify-status-msg" class="desc" style="margin-top: 10px; font-size: 0.8rem;"></p>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+                    <h3 style="margin:0;">
+                        <i data-lucide="radio"></i>
+                        <span>Spotify API Synchronization</span>
+                    </h3>
+                    <span id="spotify-active-badge" class="device-status-badge offline">
+                        <i data-lucide="circle-slash"></i>
+                        <span id="spotify-active-badge-text">NOT LINKED</span>
+                    </span>
+                </div>
+                <p class="desc" style="margin-bottom: 12px;">Link Spotify to synchronize lighting beat detection, tempo shifts, section transitions, and the DAW Arranger in real time.</p>
+
+                <!-- Active Spotify Session Banner (shown when connected) -->
+                <div id="spotify-connected-banner" class="spotify-active-banner" style="display:none;">
+                    <div class="spotify-active-info">
+                        <i data-lucide="check-circle-2" style="color:var(--accent-primary);"></i>
+                        <div>
+                            <strong>Spotify Linked & Saved</strong>
+                            <div style="font-size:11px; color:var(--text-muted);" id="spotify-account-details">Credentials and local token cached. Automatically locks to active playback.</div>
+                        </div>
+                    </div>
+                    <button type="button" id="btn-spotify-logout" class="small-btn" style="border-color:var(--accent-danger); color:var(--accent-danger);">
+                        <i data-lucide="log-out"></i>
+                        <span>Disconnect</span>
+                    </button>
+                </div>
+
+                <!-- 3-Step Setup Guide -->
+                <div class="spotify-guide-container">
+                    <div class="spotify-step">
+                        <div class="spotify-step-num">1</div>
+                        <div class="spotify-step-body">
+                            Log into the <a href="https://developer.spotify.com/dashboard" target="_blank" class="spotify-link">Spotify Developer Dashboard <i data-lucide="external-link" style="width:12px; height:12px;"></i></a> and click <strong>Create App</strong> (App name can be "Symphony LED", set APIs used to <em>Web API</em>).
+                        </div>
+                    </div>
+                    <div class="spotify-step">
+                        <div class="spotify-step-num">2</div>
+                        <div class="spotify-step-body">
+                            In your app's <strong>Settings</strong>, add this exact <strong>Redirect URI</strong>:
+                            <div class="spotify-uri-box">
+                                <code class="spotify-uri-code" id="spotify-redirect-uri-val">http://127.0.0.1:8090/api/spotify/callback</code>
+                                <button type="button" id="btn-copy-redirect-uri" class="small-btn" title="Copy URI to Clipboard">
+                                    <i data-lucide="copy"></i>
+                                    <span>Copy URI</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="spotify-step">
+                        <div class="spotify-step-num">3</div>
+                        <div class="spotify-step-body">
+                            Copy your <strong>Client ID</strong> and <strong>Client Secret</strong> from Spotify and paste them below:
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    <input type="text" id="spotify-client-id" placeholder="Paste Spotify Client ID here">
+                    <input type="password" id="spotify-client-secret" placeholder="Paste Spotify Client Secret here">
+                    <button type="button" id="btn-spotify-login" class="ctrl-btn accent-btn" style="margin-top: 4px;">
+                        <i data-lucide="key"></i>
+                        <span>Connect & Authorize Spotify</span>
+                    </button>
+                    <p id="spotify-status-msg" class="desc" style="margin-top: 6px; font-size: 0.8rem; font-family:var(--mono-font);"></p>
+                </div>
             </div>
         </div>
 
@@ -295,14 +348,14 @@
             <div class="card form-card">
                 <h3>
                     <i data-lucide="plus-circle"></i>
-                    <span>Add Color Preset</span>
+                    <span>Add Custom Color Preset</span>
                 </h3>
-                <input type="text" id="color-name" placeholder="Preset Name (e.g. Harsh Amber)">
+                <input type="text" id="color-name" placeholder="Color Name (e.g. Crimson, Amber, Cyan)">
                 <div class="color-picker-wrapper">
                     <input type="color" id="color-hex" value="#ff9e00">
                 </div>
                 <div style="margin-top: 10px;">
-                    <span class="speed-label">Quick Standard Swatch Palette:</span>
+                    <span class="speed-label">Standard Hardware Color Swatches:</span>
                     <div class="quick-swatches-grid" id="quick-swatches-preset"></div>
                 </div>
                 <input type="text" id="color-hotkey" class="hotkey-input" placeholder="Click here & press hotkey..." readonly style="margin-top: 12px;">
@@ -312,17 +365,29 @@
                 </button>
                 <p id="color-error" class="error-msg"></p>
             </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 6px;">
-                <p class="section-title" style="margin:0;">
-                    <i data-lucide="grid"></i>
-                    <span>Registered Color Presets</span>
-                </p>
-                <button id="btn-seed-standard-colors" class="small-btn">
-                    <i data-lucide="palette"></i>
-                    <span>Load Standard Color Palette</span>
-                </button>
+
+            <div class="card" style="margin-top: 14px;">
+                <div class="color-matrix-toolbar">
+                    <div>
+                        <h3 style="margin:0; font-size:14px;">
+                            <i data-lucide="palette"></i>
+                            <span>Active Color Matrix Presets</span>
+                        </h3>
+                        <p class="desc" style="margin:2px 0 0 0; font-size:11px;">Visual color references, HEX/RGB metrics, and hotkey triggers across your smart light fixtures.</p>
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <button id="btn-seed-standard-colors" class="small-btn">
+                            <i data-lucide="sparkles"></i>
+                            <span>Load 13 Clean Colors</span>
+                        </button>
+                        <button id="btn-reset-clean-palette" class="small-btn" style="border-color:var(--border-crisp);">
+                            <i data-lucide="refresh-cw"></i>
+                            <span>Reset to Default 13</span>
+                        </button>
+                    </div>
+                </div>
+                <div id="colors-list" class="color-matrix-grid"></div>
             </div>
-            <div id="colors-list" class="list-container"></div>
         </div>
 
         <!-- Sequences View -->

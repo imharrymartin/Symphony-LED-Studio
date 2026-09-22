@@ -67,6 +67,44 @@ pip install -r requirements.txt
 
 ---
 
+## 🎵 Spotify Beat Sync & Arranger Setup
+
+Symphony Studio locks your smart lights directly to Spotify's playback, beat tempo, and audio analysis:
+
+1. **Create Spotify Developer App**:
+   - Go to the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) and log in.
+   - Click **Create App**. Name it `Symphony LED` (or anything you like) and select **Web API**.
+2. **Add Redirect URI**:
+   - In your app's **Settings**, add the following Redirect URI and click **Save**:
+     ```
+     http://127.0.0.1:8090/api/spotify/callback
+     ```
+3. **Connect in Symphony**:
+   - Copy your **Client ID** and **Client Secret** into the **Master Bus** tab in Symphony Studio.
+   - Click **Connect & Authorize Spotify**. Authorize in the popup window.
+   - Once authorized, credentials and tokens are **saved permanently**. You never have to re-enter them again!
+
+---
+
+## 🎨 Color Matrix & Standard Presets
+
+The Color Matrix includes 13 clean, essential hardware diode colors with visual HEX & RGB references and pre-mapped hotkeys:
+
+- **Crimson** (`#ff0000`) &mdash; [Hotkey: 1]
+- **Orange** (`#ff6600`) &mdash; [Hotkey: 2]
+- **Amber** (`#ff9e00`) &mdash; [Hotkey: 3]
+- **Yellow** (`#ffff00`) &mdash; [Hotkey: 4]
+- **Lime** (`#88ff00`) &mdash; [Hotkey: 5]
+- **Green** (`#00ff44`) &mdash; [Hotkey: 6]
+- **Cyan** (`#00f0ff`) &mdash; [Hotkey: 7]
+- **Blue** (`#0044ff`) &mdash; [Hotkey: 8]
+- **Purple** (`#8800ff`) &mdash; [Hotkey: 9]
+- **Magenta** (`#ff00bb`)
+- **Pink** (`#ff3388`)
+- **White** (`#ffffff`)
+- **Warm White** (`#ffe4b5`)
+
+
 ## ☕ Support & Buy Me a Coffee
 
 If you love **Symphony Studio** and want to support its ongoing development, consider buying me a coffee!

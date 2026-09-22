@@ -1238,3 +1238,247 @@ input[type="range"]:focus::-webkit-slider-thumb {
   font-family: var(--mono-font);
 }
 
+/* ==========================================================================
+   COLOR MATRIX HARDWARE CARDS & VISUAL REFERENCES
+   ========================================================================== */
+
+.color-matrix-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+  margin-bottom: 8px;
+}
+
+.color-matrix-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.color-card {
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-crisp);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.color-card:hover {
+  border-color: var(--border-highlight);
+  transform: translateY(-1px);
+}
+
+.color-card-swatch {
+  width: 100%;
+  height: 48px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 6px;
+  box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.color-card:hover .color-card-swatch {
+  box-shadow: 0 0 12px var(--card-color-glow, rgba(255, 255, 255, 0.15));
+}
+
+.color-card-swatch-badge {
+  font-family: var(--mono-font);
+  font-size: 10px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  padding: 1px 5px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.color-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.color-card-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.color-card-metrics {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono-font);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.color-card-metrics .hex-tag {
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.color-card-hotkey-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.color-card-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.color-card-play-btn {
+  flex: 1;
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-crisp);
+  color: var(--text-main);
+  padding: 6px 10px;
+  font-size: 11px;
+  font-family: var(--mono-font);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.color-card-play-btn:hover {
+  background-color: var(--accent-dim);
+  border-color: var(--accent-border);
+  color: var(--accent-primary);
+}
+
+.color-card-del-btn {
+  background: transparent;
+  border: 1px solid var(--border-crisp);
+  color: var(--text-muted);
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.color-card-del-btn:hover {
+  background: rgba(201, 59, 59, 0.15);
+  border-color: var(--accent-danger);
+  color: var(--accent-danger);
+}
+
+/* ==========================================================================
+   SPOTIFY STEP-BY-STEP INTEGRATION STYLES
+   ========================================================================== */
+
+.spotify-guide-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-crisp);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  margin-bottom: 14px;
+}
+
+.spotify-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.spotify-step-num {
+  font-family: var(--mono-font);
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--accent-dim);
+  color: var(--accent-primary);
+  border: 1px solid var(--accent-border);
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.spotify-step-body {
+  flex: 1;
+}
+
+.spotify-link {
+  color: var(--accent-primary);
+  text-decoration: underline;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.spotify-link:hover {
+  color: var(--accent-hover);
+}
+
+.spotify-uri-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-crisp);
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+  margin-top: 6px;
+}
+
+.spotify-uri-code {
+  font-family: var(--mono-font);
+  font-size: 11px;
+  color: var(--accent-primary);
+  flex: 1;
+  word-break: break-all;
+}
+
+.spotify-active-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--accent-dim);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+
+.spotify-active-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--mono-font);
+  font-size: 12px;
+  color: var(--text-main);
+}
+

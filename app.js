@@ -1,19 +1,20 @@
-// Standard Hardware Color Palette (13 default essential colors)
+// Standard Hardware Color Palette (13 clean essential colors)
 const STANDARD_PALETTE = [
-    { name: "Crimson Red", hex: "#ff0000", rgb: { r: 255, g: 0, b: 0 } },
-    { name: "Neon Orange", hex: "#ff6600", rgb: { r: 255, g: 102, b: 0 } },
-    { name: "Harsh Amber", hex: "#ff9e00", rgb: { r: 255, g: 158, b: 0 } },
-    { name: "Laser Yellow", hex: "#ffff00", rgb: { r: 255, g: 255, b: 0 } },
-    { name: "Acid Lime", hex: "#88ff00", rgb: { r: 136, g: 255, b: 0 } },
-    { name: "Matrix Green", hex: "#00ff44", rgb: { r: 0, g: 255, b: 68 } },
-    { name: "High-Vis Cyan", hex: "#00f0ff", rgb: { r: 0, g: 240, b: 255 } },
-    { name: "Deep Cobalt", hex: "#0044ff", rgb: { r: 0, g: 68, b: 255 } },
-    { name: "Ultraviolet", hex: "#8800ff", rgb: { r: 136, g: 0, b: 255 } },
-    { name: "Cyber Magenta", hex: "#ff00bb", rgb: { r: 255, g: 0, b: 187 } },
-    { name: "Neon Pink", hex: "#ff3388", rgb: { r: 255, g: 51, b: 136 } },
-    { name: "Pure White", hex: "#ffffff", rgb: { r: 255, g: 255, b: 255 } },
+    { name: "Crimson", hex: "#ff0000", rgb: { r: 255, g: 0, b: 0 } },
+    { name: "Orange", hex: "#ff6600", rgb: { r: 255, g: 102, b: 0 } },
+    { name: "Amber", hex: "#ff9e00", rgb: { r: 255, g: 158, b: 0 } },
+    { name: "Yellow", hex: "#ffff00", rgb: { r: 255, g: 255, b: 0 } },
+    { name: "Lime", hex: "#88ff00", rgb: { r: 136, g: 255, b: 0 } },
+    { name: "Green", hex: "#00ff44", rgb: { r: 0, g: 255, b: 68 } },
+    { name: "Cyan", hex: "#00f0ff", rgb: { r: 0, g: 240, b: 255 } },
+    { name: "Blue", hex: "#0044ff", rgb: { r: 0, g: 68, b: 255 } },
+    { name: "Purple", hex: "#8800ff", rgb: { r: 136, g: 0, b: 255 } },
+    { name: "Magenta", hex: "#ff00bb", rgb: { r: 255, g: 0, b: 187 } },
+    { name: "Pink", hex: "#ff3388", rgb: { r: 255, g: 51, b: 136 } },
+    { name: "White", hex: "#ffffff", rgb: { r: 255, g: 255, b: 255 } },
     { name: "Warm White", hex: "#ffe4b5", rgb: { r: 255, g: 228, b: 181 } }
 ];
+
 
 // Hardware Toast Notification System (Zero default white browser popups)
 function showToast(title, message, isAlert = false, duration = 3500) {
@@ -154,7 +155,24 @@ function initStandardSwatches() {
     if (btnSeed) {
         btnSeed.addEventListener('click', () => seedStandardColors(true));
     }
+
+    const btnResetClean = document.getElementById('btn-reset-clean-palette');
+    if (btnResetClean) {
+        btnResetClean.addEventListener('click', () => {
+            config.colors = STANDARD_PALETTE.map((c, idx) => ({
+                id: 'c_clean_' + c.name.toLowerCase().replace(/[^a-z0-9]/g, '_'),
+                name: c.name,
+                hex: c.hex,
+                rgb: { ...c.rgb },
+                hotkey: idx < 9 ? String(idx + 1) : ''
+            }));
+            saveConfig();
+            renderLists();
+            showToast('Palette Reset', 'Restored 13 standard clean color presets with numpad keys 1-9.');
+        });
+    }
 }
+
 
 async function fetchConfig() {
     try {
@@ -606,20 +624,48 @@ function renderLists() {
     const clist = document.getElementById('colors-list');
     const slist = document.getElementById('seqs-list');
 
-    clist.innerHTML = config.colors.map((c, i) => `
-        <div class="list-item">
-            <div class="list-item-content" style="display:flex; align-items:center;">
-                <button class="small-btn" style="padding:4px 8px; margin-right:12px; border-radius:var(--radius-sm); background:var(--accent-dim); color:var(--accent-primary); border:1px solid var(--accent-primary);" onclick="testColor({r:${c.rgb.r}, g:${c.rgb.g}, b:${c.rgb.b}})" title="Play Color">Play</button>
-                <div style="flex:1;">
-                    <h4 style="margin:0;"><span class="color-preview" style="background:${c.hex}"></span> ${c.name}</h4>
-                    <div style="margin-top:6px;">
-                        ${c.hotkey ? `<span class="badge" style="cursor:pointer" onclick="startRebindColor(${i})" title="Rebind">[ ${c.hotkey} ] <span style="color:#c93b3b; margin-left:5px; padding-left:7px; border-left:1px solid rgba(255,255,255,0.3);" onclick="clearColorHotkey(${i}, event)" title="Remove Hotkey">x</span></span>` : `<button class="small-btn" style="padding:2px 8px; font-size:0.75rem;" onclick="startRebindColor(${i})">+ Add Hotkey</button>`}
+    if (clist) {
+        clist.innerHTML = (config.colors && config.colors.length > 0) ? config.colors.map((c, i) => `
+            <div class="color-card" style="--card-color-glow: ${c.hex}44;">
+                <div class="color-card-swatch" style="background-color: ${c.hex};" title="Diode Output: ${c.name} (${c.hex})">
+                    <span class="color-card-swatch-badge">${c.hex.toUpperCase()}</span>
+                </div>
+                <div class="color-card-info">
+                    <h4 class="color-card-name">${c.name}</h4>
+                    <div class="color-card-metrics">
+                        <span>RGB: <strong class="hex-tag">${c.rgb.r}, ${c.rgb.g}, ${c.rgb.b}</strong></span>
                     </div>
                 </div>
+                <div class="color-card-hotkey-wrap">
+                    ${c.hotkey ? `
+                        <span class="badge" style="cursor:pointer" onclick="startRebindColor(${i})" title="Click to rebind hotkey">
+                            [ ${c.hotkey} ]
+                            <span style="color:var(--accent-danger); margin-left:6px; padding-left:6px; border-left:1px solid var(--border-crisp);" onclick="clearColorHotkey(${i}, event)" title="Remove hotkey">×</span>
+                        </span>
+                    ` : `
+                        <button class="small-btn" style="padding:2px 8px; font-size:10px;" onclick="startRebindColor(${i})">+ Add Hotkey</button>
+                    `}
+                </div>
+                <div class="color-card-actions">
+                    <button class="color-card-play-btn" onclick="testColor({r:${c.rgb.r}, g:${c.rgb.g}, b:${c.rgb.b}})" title="Output ${c.name} to lights">
+                        <i data-lucide="zap"></i>
+                        <span>Play</span>
+                    </button>
+                    <button class="color-card-del-btn" onclick="deleteColor(${i})" title="Delete preset">
+                        <i data-lucide="trash-2"></i>
+                    </button>
+                </div>
             </div>
-            <button class="del-btn" onclick="deleteColor(${i})">Delete</button>
-        </div>
-    `).join('') || '<p class="desc">No colors saved.</p>';
+        `).join('') : `
+            <div style="grid-column: 1 / -1; padding: 24px; text-align: center; color: var(--text-muted); font-size: 12px; border: 1px dashed var(--border-crisp); border-radius: var(--radius-sm); font-family: var(--mono-font);">
+                No color presets registered. Click "Load 13 Clean Colors" or add a color preset above.
+            </div>
+        `;
+
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            window.lucide.createIcons({ root: clist });
+        }
+    }
 
     const palette = document.getElementById('arranger-palette');
     if (palette) {
@@ -1398,15 +1444,70 @@ document.getElementById('refresh-devices')?.addEventListener('click', async () =
     setTimeout(fetchAudioDevices, 1500);
 });
 
-// Spotify Integration
+// --- Spotify Integration & UI Subsystem ---
+function updateSpotifyStatusUI(isConnected, accountInfo = null) {
+    const badge = document.getElementById('spotify-active-badge');
+    const badgeText = document.getElementById('spotify-active-badge-text');
+    const banner = document.getElementById('spotify-connected-banner');
+    const accountDetails = document.getElementById('spotify-account-details');
+    const loginBtn = document.getElementById('btn-spotify-login');
+
+    if (isConnected) {
+        if (badge) badge.className = 'device-status-badge online';
+        if (badgeText) badgeText.innerText = 'LINKED';
+        if (banner) banner.style.display = 'flex';
+        if (accountDetails && accountInfo) {
+            accountDetails.innerText = accountInfo;
+        }
+        if (loginBtn) {
+            loginBtn.innerHTML = '<i data-lucide="refresh-cw"></i><span>Re-Authenticate Spotify</span>';
+            if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons({ root: loginBtn });
+        }
+    } else {
+        if (badge) badge.className = 'device-status-badge offline';
+        if (badgeText) badgeText.innerText = 'NOT LINKED';
+        if (banner) banner.style.display = 'none';
+        if (loginBtn) {
+            loginBtn.innerHTML = '<i data-lucide="key"></i><span>Connect & Authorize Spotify</span>';
+            if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons({ root: loginBtn });
+        }
+    }
+}
+
+// Copy Redirect URI Button Helper
+const btnCopyUri = document.getElementById('btn-copy-redirect-uri');
+if (btnCopyUri) {
+    btnCopyUri.addEventListener('click', () => {
+        const uriEl = document.getElementById('spotify-redirect-uri-val');
+        const uri = uriEl ? uriEl.innerText.trim() : 'http://127.0.0.1:8090/api/spotify/callback';
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(uri).then(() => {
+                btnCopyUri.innerHTML = '<i data-lucide="check"></i><span>Copied!</span>';
+                if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons({ root: btnCopyUri });
+                showToast('URI Copied', 'Spotify Redirect URI copied to clipboard.');
+                setTimeout(() => {
+                    btnCopyUri.innerHTML = '<i data-lucide="copy"></i><span>Copy URI</span>';
+                    if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons({ root: btnCopyUri });
+                }, 2000);
+            }).catch(() => {
+                showToast('Redirect URI', uri, false, 5000);
+            });
+        } else {
+            showToast('Redirect URI', uri, false, 5000);
+        }
+    });
+}
+
+// Connect / Authenticate Spotify Button
 document.getElementById('btn-spotify-login')?.addEventListener('click', async () => {
-    const cid = document.getElementById('spotify-client-id').value.trim();
-    const csec = document.getElementById('spotify-client-secret').value.trim();
+    const cid = (document.getElementById('spotify-client-id').value || '').trim();
+    const csec = (document.getElementById('spotify-client-secret').value || '').trim();
     const msg = document.getElementById('spotify-status-msg');
 
     if (!cid || !csec) {
-        msg.innerText = "Please enter both Client ID and Client Secret.";
-        msg.style.color = "#ff3366";
+        msg.innerText = "Please enter both Client ID and Client Secret from your Spotify Developer Dashboard.";
+        msg.style.color = "var(--accent-danger)";
+        showToast('Credentials Required', 'Please enter your Spotify Client ID and Client Secret.', true);
         return;
     }
 
@@ -1414,95 +1515,141 @@ document.getElementById('btn-spotify-login')?.addEventListener('click', async ()
     config.spotify_client_secret = csec;
     await saveConfig();
 
-    msg.innerText = "Saved! Requesting Spotify Login...";
-    msg.style.color = "#8b9bb4";
+    msg.innerText = "Credentials saved. Opening Spotify authorization popup...";
+    msg.style.color = "var(--text-muted)";
 
     try {
         const res = await fetch(`${BASE_URL}/api/spotify/login`);
         const data = await res.json();
         if (data.auth_url) {
-            window.open(data.auth_url, '_blank', 'width=500,height=600');
-            msg.innerText = "Please log in to Spotify in the popup window. After authorizing, restart this App from your terminal.";
-            msg.style.color = "#1DB954";
+            window.open(data.auth_url, 'Spotify Auth', 'width=520,height=680,top=100,left=100');
+            msg.innerText = "Please authorize Symphony Studio in the popup window.";
+            msg.style.color = "var(--accent-primary)";
         } else {
-            msg.innerText = "Failed to get auth URL.";
-            msg.style.color = "#ff3366";
+            msg.innerText = "Failed to obtain auth URL from local server daemon.";
+            msg.style.color = "var(--accent-danger)";
         }
     } catch (e) {
-        msg.innerText = "Error reaching server. Is it running?";
-        msg.style.color = "#ff3366";
+        msg.innerText = "Error reaching local server daemon. Verify server is online.";
+        msg.style.color = "var(--accent-danger)";
     }
 });
 
-// Spotify Sync state
+// Disconnect Spotify Button
+document.getElementById('btn-spotify-logout')?.addEventListener('click', async () => {
+    try {
+        await fetch(`${BASE_URL}/api/spotify/disconnect`, { method: 'POST' });
+        config.spotify_client_id = '';
+        config.spotify_client_secret = '';
+        const cidInput = document.getElementById('spotify-client-id');
+        const csecInput = document.getElementById('spotify-client-secret');
+        if (cidInput) cidInput.value = '';
+        if (csecInput) csecInput.value = '';
+        const msg = document.getElementById('spotify-status-msg');
+        if (msg) msg.innerText = '';
+        updateSpotifyStatusUI(false);
+        showToast('Spotify Disconnected', 'Spotify credentials removed.');
+    } catch (e) {
+        showToast('Error', 'Failed to disconnect Spotify', true);
+    }
+});
+
+// Listen for auto-close message from OAuth popup window
+window.addEventListener('message', async (e) => {
+    if (e.data && e.data.type === 'spotify_auth_success') {
+        showToast('Spotify Connected', 'Account authorized! Symphony is now locked to your playback.');
+        updateSpotifyStatusUI(true, 'Token saved permanently. Synchronization active.');
+        const msg = document.getElementById('spotify-status-msg');
+        if (msg) {
+            msg.innerText = 'Connected and saved!';
+            msg.style.color = 'var(--accent-primary)';
+        }
+        try {
+            const r = await fetch(`${BASE_URL}/api/spotify/state`);
+            const d = await r.json();
+            if (d.status === 'success') updateBeatTrackLabel(d.state);
+        } catch (_) {}
+    }
+});
+
+// Spotify Sync state & Polling loop
 arranger.spotifySync = true;
 let spotifySyncInterval = null;
 
 // Start polling immediately if configured
 fetchConfig().then(() => {
-    if (config.spotify_client_id) document.getElementById('spotify-client-id').value = config.spotify_client_id;
-    if (config.spotify_client_secret) document.getElementById('spotify-client-secret').value = config.spotify_client_secret;
-
     if (config.spotify_client_id) {
-        if (!spotifySyncInterval) {
-            spotifySyncInterval = setInterval(async () => {
-                if (!arranger.spotifySync) return;
-                
-                try {
-                    const res = await fetch(`${BASE_URL}/api/spotify/state`);
-                    const data = await res.json();
-                    if (data.status === 'success') {
-                        const st = data.state;
-                        updateBeatTrackLabel(st);
+        const cidEl = document.getElementById('spotify-client-id');
+        if (cidEl) cidEl.value = config.spotify_client_id;
+    }
+    if (config.spotify_client_secret) {
+        const csecEl = document.getElementById('spotify-client-secret');
+        if (csecEl) csecEl.value = config.spotify_client_secret;
+    }
 
-                        // Auto-Load Magic
-                        if (st.track_id && st.track_id !== arranger.currentTrackId) {
-                            const saved = config.arrangements?.find(a => a.track_id === st.track_id);
-                            if (saved) {
-                                // Automatically update duration from current playback just in case
-                                saved.duration_ms = st.duration_ms || saved.duration_ms || 30000;
-                                loadArrangement(saved.id);
-                            } else {
-                                // It's a new song we have no arrangement for
-                                arranger.currentTrackId = st.track_id;
-                                arranger.blocks = [];
-                                arranger.automation = [];
-                                TRACK_LENGTH_MS = st.duration_ms || 30000;
-                                updateDurationLabel();
-                                document.getElementById('arranger-current-song-label').innerText = `${st.track_name} (Unsaved)`;
-                                renderArrangerBlocks();
-                                renderAutomation();
-                                drawWaveform(st.track_id);
-                            }
-                        }
+    // Check if already authenticated on server
+    fetch(`${BASE_URL}/api/spotify/state`).then(r => r.json()).then(data => {
+        if (data.status === 'success') {
+            updateSpotifyStatusUI(true, 'Active session cached. Ready for Arranger & Beat Sync.');
+            updateBeatTrackLabel(data.state);
+        } else if (config.spotify_client_id) {
+            updateSpotifyStatusUI(false);
+        }
+    }).catch(() => {});
 
-                        // Force the timeline to match the music
-                        if (!isScrubbingRuler && Date.now() > scrubCooldown) {
-                            // Snap playheadMs to Spotify's authoritative value
-                            // (the rAF loop will then smoothly advance it forward)
-                            arranger.playheadMs = Math.min(TRACK_LENGTH_MS, st.progress_ms);
-                        }
-                        arranger.isPlaying = st.is_playing;
+    if (!spotifySyncInterval) {
+        spotifySyncInterval = setInterval(async () => {
+            if (!arranger.spotifySync) return;
+            try {
+                const res = await fetch(`${BASE_URL}/api/spotify/state`);
+                const data = await res.json();
+                if (data.status === 'success') {
+                    updateSpotifyStatusUI(true, 'Active session linked.');
+                    const st = data.state;
+                    updateBeatTrackLabel(st);
 
-                        // Visually update the play button to reflect Spotify's state
-                        const playBtn = document.getElementById('btn-arrange-play');
-                        if (playBtn) {
-                            if (arranger.isPlaying) {
-                                playBtn.innerText = 'Pause Spotify';
-                                playBtn.classList.remove('success-btn');
-                                playBtn.classList.add('accent-btn');
-                            } else {
-                                playBtn.innerText = 'Play Spotify';
-                                playBtn.classList.add('success-btn');
-                                playBtn.classList.remove('accent-btn');
-                            }
+                    // Auto-Load Magic
+                    if (st.track_id && st.track_id !== arranger.currentTrackId) {
+                        const saved = config.arrangements?.find(a => a.track_id === st.track_id);
+                        if (saved) {
+                            saved.duration_ms = st.duration_ms || saved.duration_ms || 30000;
+                            loadArrangement(saved.id);
+                        } else {
+                            arranger.currentTrackId = st.track_id;
+                            arranger.blocks = [];
+                            arranger.automation = [];
+                            TRACK_LENGTH_MS = st.duration_ms || 30000;
+                            updateDurationLabel();
+                            document.getElementById('arranger-current-song-label').innerText = `${st.track_name} (Unsaved)`;
+                            renderArrangerBlocks();
+                            renderAutomation();
+                            drawWaveform(st.track_id);
                         }
                     }
-                } catch (e) { }
-            }, 2000);
-        }
+
+                    if (!isScrubbingRuler && Date.now() > scrubCooldown) {
+                        arranger.playheadMs = Math.min(TRACK_LENGTH_MS, st.progress_ms);
+                    }
+                    arranger.isPlaying = st.is_playing;
+
+                    const playBtn = document.getElementById('btn-arrange-play');
+                    if (playBtn) {
+                        if (arranger.isPlaying) {
+                            playBtn.innerText = 'Pause Spotify';
+                            playBtn.classList.remove('success-btn');
+                            playBtn.classList.add('accent-btn');
+                        } else {
+                            playBtn.innerText = 'Play Spotify';
+                            playBtn.classList.add('success-btn');
+                            playBtn.classList.remove('accent-btn');
+                        }
+                    }
+                }
+            } catch (e) { }
+        }, 2000);
     }
 });
+
 fetchAudioDevices();
 
 // --- Spotify Beat Sync UI ---

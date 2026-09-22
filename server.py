@@ -904,8 +904,53 @@ async def init_app():
             token_info = await loop.run_in_executor(None, lambda: spotify_oauth.get_access_token(code, as_dict=True))
             if token_info:
                 spotify_client = spotipy.Spotify(auth=token_info['access_token'], retries=0, requests_timeout=5)
-                return web.Response(text="Spotify Authorized! You can close this window.", content_type="text/html")
-        return web.Response(text="Authorization failed.", content_type="text/html")
+                html_resp = """<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Spotify Authorized - Symphony Studio</title>
+    <style>
+        body { background: #0d0d0d; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; text-align: center; }
+        .card { background: #1a1a1a; border: 1px solid #1DB954; padding: 36px 48px; border-radius: 4px; box-shadow: 0 10px 40px rgba(29, 185, 84, 0.25); max-width: 400px; }
+        h2 { color: #1DB954; margin: 0 0 12px 0; font-size: 20px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+        p { color: #bbb; font-size: 13px; line-height: 1.6; margin: 0 0 16px 0; }
+        .badge { display: inline-block; background: rgba(29, 185, 84, 0.15); color: #1DB954; border: 1px solid #1DB954; padding: 4px 10px; border-radius: 2px; font-size: 11px; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>✓ Spotify Connected!</h2>
+        <p>Your Spotify credentials are authenticated and saved. Symphony Studio is now locked to your playback.</p>
+        <div class="badge">SESSION ACTIVE</div>
+        <p style="color: #666; font-size: 11px; margin-top: 14px;">This window will close automatically...</p>
+    </div>
+    <script>
+        try {
+            if (window.opener) {
+                window.opener.postMessage({ type: 'spotify_auth_success' }, '*');
+            }
+        } catch (e) {}
+        setTimeout(function() { window.close(); }, 1800);
+    </script>
+</body>
+</html>"""
+                return web.Response(text=html_resp, content_type="text/html")
+        return web.Response(text="Authorization failed or expired. Please retry from Symphony Studio.", content_type="text/html")
+
+    async def handle_spotify_disconnect(request):
+        global spotify_client, spotify_oauth, config
+        spotify_client = None
+        spotify_oauth = None
+        config['spotify_client_id'] = ''
+        config['spotify_client_secret'] = ''
+        save_config()
+        try:
+            import os
+            if os.path.exists(".cache"):
+                os.remove(".cache")
+        except Exception:
+            pass
+        return web.json_response({'status': 'disconnected'})
 
     async def handle_spotify_state(request):
         global current_spotify_state, spotify_client, spotify_playback_cache, spotify_rate_limited_until
@@ -1059,6 +1104,8 @@ async def init_app():
 
     app.router.add_get('/api/spotify/login', handle_spotify_login)
     app.router.add_get('/api/spotify/callback', handle_spotify_callback)
+    app.router.add_post('/api/spotify/disconnect', handle_spotify_disconnect)
+    app.router.add_options('/api/spotify/disconnect', handle_spotify_disconnect)
     app.router.add_get('/api/spotify/state', handle_spotify_state)
     app.router.add_get('/api/spotify/analysis', handle_spotify_analysis)
     app.router.add_post('/api/spotify/control', handle_spotify_control)
