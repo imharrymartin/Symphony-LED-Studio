@@ -151,8 +151,38 @@ def main():
             try:
                 data = stream.read(1024, exception_on_overflow=False)
                 audio_array = np.frombuffer(data, dtype=np.float32)
+                
+                # Overall RMS
                 rms = float(np.sqrt(np.mean(audio_array**2)))
-                sys.stdout.write(json.dumps({"type": "rms", "val": rms}) + "\n")
+                
+                # FFT for frequency band analysis
+                n = len(audio_array)
+                if n > 0:
+                    fft_vals = np.abs(np.fft.rfft(audio_array))
+                    fft_freqs = np.fft.rfftfreq(n, d=1.0 / int(stream._rate if hasattr(stream, '_rate') else 44100))
+                    
+                    # Frequency band masks
+                    bass_mask   = (fft_freqs >= 60)   & (fft_freqs < 250)
+                    mid_mask    = (fft_freqs >= 250)  & (fft_freqs < 4000)
+                    treble_mask = (fft_freqs >= 4000) & (fft_freqs < 20000)
+                    
+                    def band_rms(mask):
+                        vals = fft_vals[mask]
+                        return float(np.sqrt(np.mean(vals**2)) / (n / 2)) if len(vals) > 0 else 0.0
+                    
+                    bass_rms   = band_rms(bass_mask)
+                    mid_rms    = band_rms(mid_mask)
+                    treble_rms = band_rms(treble_mask)
+                else:
+                    bass_rms = mid_rms = treble_rms = 0.0
+                
+                sys.stdout.write(json.dumps({
+                    "type": "rms",
+                    "val": rms,
+                    "bass": bass_rms,
+                    "mid": mid_rms,
+                    "treble": treble_rms
+                }) + "\n")
                 sys.stdout.flush()
             except Exception as e:
                 open("engine_error.txt", "a").write(f"Stream Read Error: {e}\n")
