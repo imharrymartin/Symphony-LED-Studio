@@ -1,0 +1,24 @@
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local Config & Secrets
+config.json
+.spotify_cache
+
+# Output & Log Files
+*.log
+engine_error.txt
+engine_log.txt
+err.txt
+error.log
+all_mics_out.txt
+working_mics.txt
+result.txt
+ip.txt
+test_record_output.txt
+
+# OS Files
+.DS_Store
+Thumbs.db

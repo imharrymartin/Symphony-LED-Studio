@@ -1,0 +1,8 @@
+aiohttp>=3.9.0
+flux_led>=0.28.0
+numpy>=1.26.0
+mss>=9.0.0
+spotipy>=2.23.0
+keyboard>=0.13.5
+pyaudiowpatch>=0.2.12
+pywebview>=4.0.0

@@ -1,0 +1,24 @@
+{
+    "colors": [
+        {
+            "name": "Neon Red",
+            "hex": "#ff0000",
+            "rgb": { "r": 255, "g": 0, "b": 0 },
+            "id": "c_default_red",
+            "hotkey": "1"
+        },
+        {
+            "name": "Neon Blue",
+            "hex": "#0000ff",
+            "rgb": { "r": 0, "g": 0, "b": 255 },
+            "id": "c_default_blue",
+            "hotkey": "2"
+        }
+    ],
+    "sequences": [],
+    "bulb_status": "Disconnected",
+    "bulb_ip": "192.168.1.248",
+    "spotify_client_id": "",
+    "spotify_client_secret": "",
+    "arrangements": []
+}
