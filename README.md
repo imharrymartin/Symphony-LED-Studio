@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-amber.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/platform-Windows%20WASAPI-lightgrey.svg)](https://microsoft.com)
-[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Donate-yellow.svg)](https://www.buymeacoffee.com/YOUR_USERNAME_HERE)
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Donate-yellow.svg)](https://buymeacoffee.com/hazzamatas)
 
 ---
 
@@ -47,7 +47,7 @@ pip install -r requirements.txt
 
 If you love **Symphony Studio** and want to support its ongoing development, consider buying me a coffee!
 
-<a href="https://www.buymeacoffee.com/YOUR_USERNAME_HERE" target="_blank">
+<a href="https://buymeacoffee.com/hazzamatas" target="_blank">
   <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" width="180">
 </a>
 
