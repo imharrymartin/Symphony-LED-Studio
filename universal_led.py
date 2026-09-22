@@ -83,6 +83,9 @@ class UniversalLEDController:
             "last_status_msg": self.last_status_msg
         }
 
+    def get_status(self):
+        return self.get_info()
+
     def reconfigure(self, protocol, ip, port=None, device_id="", extra_settings=None):
         with self._lock:
             self.protocol = (protocol or "flux_led").lower()

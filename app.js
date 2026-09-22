@@ -2051,20 +2051,19 @@ async function connectToDevice(protocol, ip, port, deviceId, name) {
             })
         });
         const data = await res.json();
-        if (data.status === 'ok') {
-            showToast('Hardware Linked', `Successfully linked to ${data.device.name || ip}!`);
+        if (data.status === 'ok' || data.status === 'success' || data.connected) {
+            showToast('Hardware Linked', `Successfully linked to ${data.device?.name || ip}!`);
             renderActiveDevice(data.device);
             fetchConfig();
             fetchDevices();
         } else {
-            showToast('Connection Warning', data.error || 'Failed to establish link with device', true);
+            showToast('Connection Warning', data.message || data.error || 'Failed to establish link with device', true);
         }
     } catch (e) {
         showToast('Connection Error', 'Failed to communicate with local server daemon', true);
     }
 }
 
-let scanPollInterval = null;
 async function triggerDeviceScan() {
     const scanBtn = document.getElementById('btn-scan-network');
     const indicator = document.getElementById('scan-radar-indicator');
@@ -2079,40 +2078,41 @@ async function triggerDeviceScan() {
     if (radarText) radarText.innerText = 'Broadcasting UDP beacons & probing lighting ports across local subnet...';
 
     try {
-        await fetch(`${BASE_URL}/api/scan_devices`);
+        const res = await fetch(`${BASE_URL}/api/scan_devices`);
+        const data = await res.json();
         
-        if (scanPollInterval) clearInterval(scanPollInterval);
-        scanPollInterval = setInterval(async () => {
-            try {
-                const pollRes = await fetch(`${BASE_URL}/api/devices`);
-                const pollData = await pollRes.json();
-                if (pollData.scan_status !== 'scanning') {
-                    clearInterval(scanPollInterval);
-                    scanPollInterval = null;
-                    if (indicator) indicator.style.display = 'none';
-                    if (scanBtn) {
-                        scanBtn.disabled = false;
-                        scanBtn.innerHTML = '<i data-lucide="scan"></i><span>Scan Network & USB for LEDs</span>';
-                        if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons({ root: scanBtn });
-                    }
-                    renderDiscoveredDevices(pollData.discovered_devices, pollData.active_device);
-                    showToast('Scan Complete', `Discovered ${pollData.discovered_devices ? pollData.discovered_devices.length : 0} light fixtures on your network.`);
-                } else if (pollData.discovered_devices && pollData.discovered_devices.length > 0) {
-                    renderDiscoveredDevices(pollData.discovered_devices, pollData.active_device);
-                }
-            } catch (err) {
-                clearInterval(scanPollInterval);
-                scanPollInterval = null;
+        const devices = data.discovered_devices || data.devices || [];
+        console.log('[FRONTEND SCANNER] Discovered devices:', devices);
+
+        if (indicator) indicator.style.display = 'none';
+        if (scanBtn) {
+            scanBtn.disabled = false;
+            scanBtn.innerHTML = '<i data-lucide="scan"></i><span>Scan Network & USB for LEDs</span>';
+            if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons({ root: scanBtn });
+        }
+
+        // Fetch active device state to mark active card
+        let activeDev = null;
+        try {
+            const devRes = await fetch(`${BASE_URL}/api/devices`);
+            if (devRes.ok) {
+                const devData = await devRes.json();
+                activeDev = devData.active_device;
+                renderActiveDevice(activeDev);
             }
-        }, 1200);
+        } catch (_) {}
+
+        renderDiscoveredDevices(devices, activeDev);
+        showToast('Scan Complete', `Discovered ${devices.length} light fixture${devices.length === 1 ? '' : 's'} on your network.`);
 
     } catch (e) {
         if (indicator) indicator.style.display = 'none';
         if (scanBtn) {
             scanBtn.disabled = false;
             scanBtn.innerHTML = '<i data-lucide="scan"></i><span>Scan Network & USB for LEDs</span>';
+            if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons({ root: scanBtn });
         }
-        showToast('Scan Error', 'Unable to initiate network discovery scan', true);
+        showToast('Scan Error', 'Unable to complete network discovery scan: ' + e.message, true);
     }
 }
 
@@ -2122,12 +2122,16 @@ async function fetchDevices() {
         if (res.ok) {
             const data = await res.json();
             renderActiveDevice(data.active_device);
-            renderDiscoveredDevices(data.discovered_devices, data.active_device);
+            const devs = data.discovered_devices || data.devices || [];
+            if (devs.length > 0) {
+                renderDiscoveredDevices(devs, data.active_device);
+            }
         }
     } catch (e) {
         console.error('Failed to fetch devices', e);
     }
 }
+
 
 function initHardwareDevicesView() {
     const btnOpenHw = document.getElementById('btn-open-hw-link');

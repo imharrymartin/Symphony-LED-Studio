@@ -741,10 +741,36 @@ async def handle_telemetry(request):
         'protocol': universal_controller.protocol
     })
 
+cached_discovered_devices = []
+scanner_status = "idle"
+
 async def handle_scan_devices(request):
+    global cached_discovered_devices, scanner_status
+    scanner_status = "scanning"
     loop = asyncio.get_running_loop()
-    devices = await loop.run_in_executor(None, scanner.scan_all)
-    return web.json_response({'status': 'success', 'devices': devices})
+    try:
+        devices = await loop.run_in_executor(None, scanner.scan_all)
+        cached_discovered_devices = devices or []
+        scanner_status = "idle"
+        print(f"[API] Discovery completed with {len(cached_discovered_devices)} devices.", flush=True)
+        return web.json_response({
+            'status': 'success',
+            'scan_status': 'idle',
+            'devices': cached_discovered_devices,
+            'discovered_devices': cached_discovered_devices,
+            'count': len(cached_discovered_devices)
+        })
+    except Exception as e:
+        scanner_status = "idle"
+        print(f"[API ERROR] Discovery failed: {e}", flush=True)
+        return web.json_response({
+            'status': 'error',
+            'scan_status': 'idle',
+            'error': str(e),
+            'devices': cached_discovered_devices,
+            'discovered_devices': cached_discovered_devices,
+            'count': len(cached_discovered_devices)
+        })
 
 async def handle_connect_device(request):
     global config, universal_controller
@@ -764,22 +790,32 @@ async def handle_connect_device(request):
     loop = asyncio.get_running_loop()
     ok, msg = await loop.run_in_executor(None, universal_controller.test_connection)
     
+    try:
+        with open("active_hardware.json", "w") as f:
+            json.dump({
+                "protocol": protocol,
+                "ip": ip,
+                "port": port,
+                "device_id": device_id
+            }, f, indent=2)
+    except Exception:
+        pass
+
     return web.json_response({
-        'status': 'success' if ok else 'error',
+        'status': 'ok' if ok else 'error',
         'connected': ok,
         'message': msg,
-        'device': {
-            'protocol': protocol,
-            'ip': ip,
-            'port': port,
-            'device_id': device_id
-        }
+        'device': universal_controller.get_info()
     })
 
 async def handle_devices_info(request):
+    global cached_discovered_devices, scanner_status
     return web.json_response({
         'status': 'success',
-        'active_device': universal_controller.get_status(),
+        'scan_status': scanner_status,
+        'active_device': universal_controller.get_info(),
+        'discovered_devices': cached_discovered_devices,
+        'devices': cached_discovered_devices,
         'saved_device': {
             'protocol': config.get('protocol', 'flux_led'),
             'ip': config.get('bulb_ip', ''),
