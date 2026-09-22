@@ -1064,3 +1064,177 @@ input[type="range"]:focus::-webkit-slider-thumb {
   to { opacity: 1; }
 }
 
+/* ==========================================================================
+   UNIVERSAL HARDWARE SCANNER & DEVICE LINK STYLES
+   ========================================================================== */
+
+.device-status-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-crisp);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+}
+
+.device-status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+
+.device-status-label {
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  font-family: var(--mono-font);
+}
+
+.device-status-val {
+  font-family: var(--mono-font);
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.device-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--mono-font);
+  font-size: 11px;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.04em;
+}
+
+.device-status-badge.online {
+  background: var(--accent-dim);
+  color: var(--accent-primary);
+  border: 1px solid var(--accent-border);
+}
+
+.device-status-badge.offline {
+  background: rgba(201, 59, 59, 0.15);
+  color: var(--accent-danger);
+  border: 1px solid rgba(201, 59, 59, 0.4);
+}
+
+.scanner-radar-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-input);
+  border: 1px dashed var(--accent-border);
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--accent-primary);
+  font-family: var(--mono-font);
+}
+
+.radar-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--accent-dim);
+  border-top-color: var(--accent-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.discovered-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.discovered-card {
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-crisp);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: border-color 0.15s ease;
+}
+
+.discovered-card:hover {
+  border-color: var(--accent-border);
+}
+
+.discovered-card.active-target {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.discovered-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.discovered-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.discovered-protocol-badge {
+  font-family: var(--mono-font);
+  font-size: 10px;
+  text-transform: uppercase;
+  background: var(--accent-dim);
+  color: var(--accent-primary);
+  border: 1px solid var(--accent-border);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+.discovered-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: var(--mono-font);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.discovered-details span strong {
+  color: var(--text-main);
+}
+
+.guide-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.guide-item {
+  background: var(--bg-input);
+  border: 1px solid var(--border-crisp);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.guide-item strong {
+  color: var(--accent-primary);
+  font-family: var(--mono-font);
+}
+

@@ -1929,6 +1929,272 @@ if (themeSwitcher) {
 initTheme();
 initStandardSwatches();
 
+/* ==========================================================================
+   UNIVERSAL HARDWARE SCANNER & CONTROLLER LOGIC
+   ========================================================================== */
+
+const PROTOCOL_DEFAULT_PORTS = {
+    flux_led: 5577,
+    govee: 4003,
+    wled: 80,
+    yeelight: 55443,
+    hue: 80,
+    lifx: 56700,
+    openrgb: 6742,
+    serial: 115200,
+    webhook: 80
+};
+
+function renderActiveDevice(dev) {
+    if (!dev) return;
+    const protoEl = document.getElementById('active-dev-proto');
+    const addrEl = document.getElementById('active-dev-addr');
+    const nameEl = document.getElementById('active-dev-name');
+    const badgeEl = document.getElementById('active-dev-badge');
+    const statusTextEl = document.getElementById('active-dev-status-text');
+    const headerBulbEl = document.getElementById('header-bulb-state');
+
+    const protoName = dev.protocol_name || dev.protocol || 'Unknown';
+    if (protoEl) protoEl.innerText = protoName.toUpperCase();
+    if (addrEl) addrEl.innerText = `${dev.ip || 'Unconfigured'}:${dev.port || ''}`;
+    if (nameEl) nameEl.innerText = dev.name || 'Hardware Controller';
+
+    const isOnline = dev.status === 'Connected' || dev.status === 'Online';
+    if (badgeEl && statusTextEl) {
+        if (isOnline) {
+            badgeEl.className = 'device-status-badge online';
+            statusTextEl.innerText = 'ONLINE';
+            badgeEl.innerHTML = '<i data-lucide="check-circle-2"></i><span>ONLINE</span>';
+        } else {
+            badgeEl.className = 'device-status-badge offline';
+            statusTextEl.innerText = 'OFFLINE';
+            badgeEl.innerHTML = '<i data-lucide="alert-circle"></i><span>OFFLINE</span>';
+        }
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            window.lucide.createIcons({ root: badgeEl });
+        }
+    }
+
+    if (headerBulbEl) {
+        headerBulbEl.innerText = isOnline ? `ONLINE (${dev.ip || ''})` : 'OFFLINE';
+        headerBulbEl.style.color = isOnline ? 'var(--accent-primary)' : 'var(--accent-danger)';
+    }
+}
+
+function renderDiscoveredDevices(devices, activeDev) {
+    const grid = document.getElementById('discovered-devices-grid');
+    if (!grid) return;
+    if (!devices || devices.length === 0) {
+        grid.innerHTML = `
+            <div style="grid-column: 1 / -1; padding: 22px; text-align: center; color: var(--text-muted); font-size: 12px; border: 1px dashed var(--border-crisp); border-radius: var(--radius-sm); font-family: var(--mono-font);">
+                No hardware devices discovered yet. Click "Scan Network & USB for LEDs" above to search local WiFi and serial ports.
+            </div>
+        `;
+        return;
+    }
+
+    grid.innerHTML = devices.map(d => {
+        const isActive = activeDev && activeDev.ip === d.ip && String(activeDev.port) === String(d.port);
+        return `
+            <div class="discovered-card ${isActive ? 'active-target' : ''}">
+                <div class="discovered-header">
+                    <h4 class="discovered-title">${d.name || 'Smart LED Light'}</h4>
+                    <span class="discovered-protocol-badge">${(d.protocol || 'LED').toUpperCase()}</span>
+                </div>
+                <div class="discovered-details">
+                    <span>Target: <strong>${d.ip}:${d.port}</strong></span>
+                    ${d.mac ? `<span>MAC: <strong>${d.mac}</strong></span>` : ''}
+                    ${d.model ? `<span>Model: <strong>${d.model}</strong></span>` : ''}
+                    <span>Status: <strong style="color: ${d.status === 'Online' ? 'var(--accent-primary)' : 'var(--text-muted)'};">${d.status}</strong></span>
+                </div>
+                <button class="ctrl-btn small-btn btn-connect-target" 
+                        data-proto="${d.protocol}" 
+                        data-ip="${d.ip}" 
+                        data-port="${d.port}" 
+                        data-id="${d.id || ''}"
+                        data-name="${d.name || ''}"
+                        style="margin-top: 6px; ${isActive ? 'background: var(--accent-dim); border: 1px solid var(--accent-border);' : 'background: var(--bg-elevated); border: 1px solid var(--border-crisp);'}">
+                    <i data-lucide="${isActive ? 'check' : 'link'}"></i>
+                    <span>${isActive ? 'Active Hardware' : 'Connect & Set as Active'}</span>
+                </button>
+            </div>
+        `;
+    }).join('');
+
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons({ root: grid });
+    }
+
+    grid.querySelectorAll('.btn-connect-target').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const proto = btn.getAttribute('data-proto');
+            const ip = btn.getAttribute('data-ip');
+            const port = parseInt(btn.getAttribute('data-port')) || 5577;
+            const devId = btn.getAttribute('data-id');
+            const name = btn.getAttribute('data-name');
+            await connectToDevice(proto, ip, port, devId, name);
+        });
+    });
+}
+
+async function connectToDevice(protocol, ip, port, deviceId, name) {
+    showToast('Connecting Hardware', `Establishing connection to ${name || ip}...`);
+    try {
+        const res = await fetch(`${BASE_URL}/api/connect_device`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                protocol: protocol,
+                ip: ip,
+                port: port,
+                device_id: deviceId
+            })
+        });
+        const data = await res.json();
+        if (data.status === 'ok') {
+            showToast('Hardware Linked', `Successfully linked to ${data.device.name || ip}!`);
+            renderActiveDevice(data.device);
+            fetchConfig();
+            fetchDevices();
+        } else {
+            showToast('Connection Warning', data.error || 'Failed to establish link with device', true);
+        }
+    } catch (e) {
+        showToast('Connection Error', 'Failed to communicate with local server daemon', true);
+    }
+}
+
+let scanPollInterval = null;
+async function triggerDeviceScan() {
+    const scanBtn = document.getElementById('btn-scan-network');
+    const indicator = document.getElementById('scan-radar-indicator');
+    const radarText = document.getElementById('scan-radar-text');
+
+    if (scanBtn) {
+        scanBtn.disabled = true;
+        scanBtn.innerHTML = '<i data-lucide="loader"></i><span>Scanning Subnet & Broadcast Frequencies...</span>';
+        if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons({ root: scanBtn });
+    }
+    if (indicator) indicator.style.display = 'flex';
+    if (radarText) radarText.innerText = 'Broadcasting UDP beacons & probing lighting ports across local subnet...';
+
+    try {
+        await fetch(`${BASE_URL}/api/scan_devices`);
+        
+        if (scanPollInterval) clearInterval(scanPollInterval);
+        scanPollInterval = setInterval(async () => {
+            try {
+                const pollRes = await fetch(`${BASE_URL}/api/devices`);
+                const pollData = await pollRes.json();
+                if (pollData.scan_status !== 'scanning') {
+                    clearInterval(scanPollInterval);
+                    scanPollInterval = null;
+                    if (indicator) indicator.style.display = 'none';
+                    if (scanBtn) {
+                        scanBtn.disabled = false;
+                        scanBtn.innerHTML = '<i data-lucide="scan"></i><span>Scan Network & USB for LEDs</span>';
+                        if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons({ root: scanBtn });
+                    }
+                    renderDiscoveredDevices(pollData.discovered_devices, pollData.active_device);
+                    showToast('Scan Complete', `Discovered ${pollData.discovered_devices ? pollData.discovered_devices.length : 0} light fixtures on your network.`);
+                } else if (pollData.discovered_devices && pollData.discovered_devices.length > 0) {
+                    renderDiscoveredDevices(pollData.discovered_devices, pollData.active_device);
+                }
+            } catch (err) {
+                clearInterval(scanPollInterval);
+                scanPollInterval = null;
+            }
+        }, 1200);
+
+    } catch (e) {
+        if (indicator) indicator.style.display = 'none';
+        if (scanBtn) {
+            scanBtn.disabled = false;
+            scanBtn.innerHTML = '<i data-lucide="scan"></i><span>Scan Network & USB for LEDs</span>';
+        }
+        showToast('Scan Error', 'Unable to initiate network discovery scan', true);
+    }
+}
+
+async function fetchDevices() {
+    try {
+        const res = await fetch(`${BASE_URL}/api/devices`);
+        if (res.ok) {
+            const data = await res.json();
+            renderActiveDevice(data.active_device);
+            renderDiscoveredDevices(data.discovered_devices, data.active_device);
+        }
+    } catch (e) {
+        console.error('Failed to fetch devices', e);
+    }
+}
+
+function initHardwareDevicesView() {
+    const btnOpenHw = document.getElementById('btn-open-hw-link');
+    if (btnOpenHw) {
+        btnOpenHw.addEventListener('click', () => {
+            const tabBtn = document.getElementById('tab-btn-devices');
+            if (tabBtn) tabBtn.click();
+        });
+    }
+
+    const scanBtn = document.getElementById('btn-scan-network');
+    if (scanBtn) {
+        scanBtn.addEventListener('click', triggerDeviceScan);
+    }
+
+    const btnTestDev = document.getElementById('btn-test-active-device');
+    if (btnTestDev) {
+        btnTestDev.addEventListener('click', async () => {
+            showToast('Diode Pulse', 'Sending hardware flash test sequence...');
+            try {
+                await fetch(`${BASE_URL}/api/test_device`, { method: 'POST' });
+            } catch (e) { }
+        });
+    }
+
+    const btnPingDev = document.getElementById('btn-ping-active-device');
+    if (btnPingDev) {
+        btnPingDev.addEventListener('click', async () => {
+            showToast('Diagnostics', 'Verifying hardware link...');
+            await fetchDevices();
+            showToast('Diagnostics Complete', 'Hardware link status updated.');
+        });
+    }
+
+    const protoSelect = document.getElementById('manual-proto-select');
+    const portInput = document.getElementById('manual-port-input');
+    if (protoSelect && portInput) {
+        protoSelect.addEventListener('change', () => {
+            const val = protoSelect.value;
+            if (PROTOCOL_DEFAULT_PORTS[val]) {
+                portInput.value = PROTOCOL_DEFAULT_PORTS[val];
+            }
+        });
+    }
+
+    const btnSaveManual = document.getElementById('btn-save-manual-device');
+    if (btnSaveManual) {
+        btnSaveManual.addEventListener('click', async () => {
+            const proto = document.getElementById('manual-proto-select').value;
+            const ip = (document.getElementById('manual-ip-input').value || '').trim();
+            const port = parseInt(document.getElementById('manual-port-input').value) || PROTOCOL_DEFAULT_PORTS[proto] || 5577;
+            const extra = (document.getElementById('manual-extra-input').value || '').trim();
+
+            if (!ip) {
+                showToast('Input Required', 'Please enter an IP address, hostname, or COM port.', true);
+                return;
+            }
+
+            await connectToDevice(proto, ip, port, extra, `${proto.toUpperCase()} Light`);
+        });
+    }
+
+    fetchDevices();
+}
+
+initHardwareDevicesView();
+
 // Polling for telemetry & VU audio levels
 async function pollTelemetry() {
     try {
@@ -1940,8 +2206,9 @@ async function pollTelemetry() {
 
             const bulbEl = document.getElementById('header-bulb-state');
             if (bulbEl) {
-                bulbEl.innerText = data.bulb_status === 'Connected' ? 'LINKED' : 'OFFLINE';
-                bulbEl.style.color = data.bulb_status === 'Connected' ? 'var(--accent-success)' : 'var(--accent-danger)';
+                const isOnline = data.bulb_status === 'Connected';
+                bulbEl.innerText = isOnline ? 'LINKED' : 'OFFLINE';
+                bulbEl.style.color = isOnline ? 'var(--accent-primary)' : 'var(--accent-danger)';
             }
 
             // VU Bars
@@ -1971,3 +2238,4 @@ async function pollTelemetry() {
 }
 
 setInterval(pollTelemetry, 250);
+

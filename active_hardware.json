@@ -1,0 +1,6 @@
+{
+  "protocol": "flux_led",
+  "ip": "192.168.1.248",
+  "port": 5577,
+  "device_id": "AK001-ZJ2145"
+}

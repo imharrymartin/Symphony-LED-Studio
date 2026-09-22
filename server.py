@@ -13,10 +13,16 @@ import time
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 
-BULB_IP = "192.168.1.247"
+import universal_led
+import scanner_engine
+
+BULB_IP = "192.168.1.248"
 CONFIG_FILE = "config.json"
 bulb = None
 main_loop = None
+
+universal_controller = universal_led.UniversalLEDController({"bulb_ip": BULB_IP, "protocol": "flux_led"})
+scanner = scanner_engine.ScannerEngine()
 
 config = {"colors": [], "sequences": []}
 current_sequence_task = None
@@ -182,53 +188,39 @@ def init_spotify():
             print("SPOTIFY: No cached token found.", flush=True)
 
 async def setup_bulb():
-    global bulb, BULB_IP
-    print(f"Connecting to Bulb {BULB_IP}...", flush=True)
+    global bulb, BULB_IP, universal_controller
+    protocol = config.get("protocol", "flux_led")
+    ip = config.get("bulb_ip", BULB_IP)
+    port = config.get("port")
+    device_id = config.get("device_id", "")
     
-    def try_connect():
-        import socket
-        try:
-            # Test if bulb is reachable with a fast timeout before committing
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.settimeout(3)  # 3 second timeout
-            sock.connect((BULB_IP, 5577))  # flux_led default port
-            sock.close()
-            # WifiLedBulb connects and queries state on construction
-            sb = flux_led.WifiLedBulb(BULB_IP, timeout=5)
-            # raw_state is populated automatically on connect
-            _ = sb.raw_state
-            return sb
-        except Exception as e:
-            print(f"LINK FAILED: {e}", flush=True)
-            return None
-        
+    universal_controller.reconfigure(protocol, ip, port, device_id)
     loop = asyncio.get_running_loop()
-    sb = await loop.run_in_executor(None, try_connect)
-    if sb:
-        bulb = sb
-        print(f"LINKED: Successfully bridged to {BULB_IP}", flush=True)
+    ok, msg = await loop.run_in_executor(None, universal_controller.test_connection)
+    if ok:
+        bulb = universal_controller
+        print(f"LINKED: [{protocol.upper()}] Successfully bridged to {ip} ({msg})", flush=True)
     else:
         bulb = None
-        print("STALLED: No hardware bridge could be established.", flush=True)
+        print(f"STALLED: [{protocol.upper()}] Could not connect to {ip}: {msg}", flush=True)
 
 async def bulb_reconnect_loop():
-    """Background task: retry bulb connection every 15s when offline."""
+    """Background task: retry LED device connection every 15s when offline."""
     while True:
         await asyncio.sleep(15)
-        if not bulb:
-            print("RECONNECT: Bulb offline, retrying...", flush=True)
+        if not universal_controller.is_connected:
+            print("RECONNECT: Device offline, retrying...", flush=True)
             await setup_bulb()
 
 async def apply_color(r, g, b_val, record_state=True):
-    if not bulb: return
-    global last_saved_rgb
+    global last_saved_rgb, universal_controller
     try:
         loop = asyncio.get_running_loop()
-        await loop.run_in_executor(None, lambda: bulb.set_levels(r, g, b_val))
+        await loop.run_in_executor(None, lambda: universal_controller.set_color(r, g, b_val))
         if record_state:
             last_saved_rgb = {"r": r, "g": g, "b": b_val}
     except Exception as e:
-        if record_state: print(f"Bulb Error: {e}", flush=True)
+        if record_state: print(f"LED Output Error: {e}", flush=True)
 
 async def run_sequence(seq):
     global audio_sync_active, screen_sync_active
@@ -355,11 +347,11 @@ async def handle_action(request):
     command_audio_engine({'action': 'stop'})
             
     loop = asyncio.get_running_loop()
-    if action == 'on' and bulb:
-        await loop.run_in_executor(None, lambda: bulb.turn_on())
-    elif action == 'off' and bulb:
-        await loop.run_in_executor(None, lambda: bulb.turn_off())
-    elif action == 'test_color' and bulb:
+    if action == 'on':
+        await loop.run_in_executor(None, universal_controller.turn_on)
+    elif action == 'off':
+        await loop.run_in_executor(None, universal_controller.turn_off)
+    elif action == 'test_color':
         r, g, b_val = data.get('r', 255), data.get('g', 255), data.get('b', 255)
         await apply_color(r, g, b_val)
     elif action == 'sequence':
@@ -744,9 +736,66 @@ async def handle_telemetry(request):
         'audio_sync': audio_sync_active,
         'spotify_beat_sync': spotify_beat_sync_active,
         'screen_sync': screen_sync_active,
-        'bulb_status': 'Connected' if bulb else 'Disconnected',
-        'bulb_ip': BULB_IP
+        'bulb_status': 'Connected' if universal_controller.is_connected else 'Disconnected',
+        'bulb_ip': universal_controller.ip,
+        'protocol': universal_controller.protocol
     })
+
+async def handle_scan_devices(request):
+    loop = asyncio.get_running_loop()
+    devices = await loop.run_in_executor(None, scanner.scan_all)
+    return web.json_response({'status': 'success', 'devices': devices})
+
+async def handle_connect_device(request):
+    global config, universal_controller
+    data = await request.json()
+    protocol = data.get('protocol', 'flux_led')
+    ip = data.get('ip', '')
+    port = data.get('port')
+    device_id = data.get('device_id', '')
+    
+    config['protocol'] = protocol
+    config['bulb_ip'] = ip
+    if port: config['port'] = int(port)
+    if device_id: config['device_id'] = device_id
+    save_config()
+    
+    universal_controller.reconfigure(protocol, ip, port, device_id)
+    loop = asyncio.get_running_loop()
+    ok, msg = await loop.run_in_executor(None, universal_controller.test_connection)
+    
+    return web.json_response({
+        'status': 'success' if ok else 'error',
+        'connected': ok,
+        'message': msg,
+        'device': {
+            'protocol': protocol,
+            'ip': ip,
+            'port': port,
+            'device_id': device_id
+        }
+    })
+
+async def handle_devices_info(request):
+    return web.json_response({
+        'status': 'success',
+        'active_device': universal_controller.get_status(),
+        'saved_device': {
+            'protocol': config.get('protocol', 'flux_led'),
+            'ip': config.get('bulb_ip', ''),
+            'port': config.get('port', 0),
+            'device_id': config.get('device_id', '')
+        }
+    })
+
+async def handle_test_device(request):
+    data = await request.json()
+    r = int(data.get('r', 255))
+    g = int(data.get('g', 255))
+    b = int(data.get('b', 255))
+    loop = asyncio.get_running_loop()
+    await loop.run_in_executor(None, lambda: universal_controller.set_color(r, g, b))
+    return web.json_response({'status': 'success'})
 
 async def init_app():
     global main_loop
@@ -757,8 +806,6 @@ async def init_app():
     load_config()
     apply_hotkeys()
     init_spotify()  # Fast: only reads cached token from disk, no network I/O
-    # Don't await bulb here — let the server start immediately
-    # Bulb will connect in the background via on_startup
     
     app = web.Application()
     async def cors_middleware(app, handler):
@@ -773,7 +820,6 @@ async def init_app():
 
     # Background init for bulb (don't block server startup)
     async def background_init(app):
-        # Fire and forget — server is already serving while this runs
         asyncio.ensure_future(setup_bulb())
         asyncio.ensure_future(bulb_reconnect_loop())
     
@@ -785,6 +831,12 @@ async def init_app():
     app.router.add_get('/api/config', handle_get_config)
     app.router.add_get('/api/telemetry', handle_telemetry)
     app.router.add_post('/api/reconnect_bulb', handle_reconnect_bulb)
+    app.router.add_get('/api/scan_devices', handle_scan_devices)
+    app.router.add_post('/api/connect_device', handle_connect_device)
+    app.router.add_options('/api/connect_device', handle_connect_device)
+    app.router.add_get('/api/devices', handle_devices_info)
+    app.router.add_post('/api/test_device', handle_test_device)
+    app.router.add_options('/api/test_device', handle_test_device)
     app.router.add_get('/api/audio_devices', handle_get_devices)
     app.router.add_post('/api/config', handle_save_config)
     app.router.add_options('/api/config', handle_save_config)

@@ -60,6 +60,10 @@
                 <i data-lucide="layout-dashboard"></i>
                 <span>Master Bus</span>
             </button>
+            <button class="tab-btn" data-target="devices" id="tab-btn-devices">
+                <i data-lucide="cpu"></i>
+                <span>Hardware Link</span>
+            </button>
             <button class="tab-btn" data-target="colors">
                 <i data-lucide="palette"></i>
                 <span>Color Matrix</span>
@@ -102,6 +106,10 @@
                         <i data-lucide="refresh-cw"></i>
                         <span>Retry Hardware Link</span>
                     </button>
+                    <button id="btn-open-hw-link" class="small-btn" style="margin-left:8px;">
+                        <i data-lucide="cpu"></i>
+                        <span>Configure Hardware</span>
+                    </button>
                 </div>
                 <p class="desc" style="margin-top: 10px;">Global hotkey listener active. Hardware color matrix and step sequences trigger across all PC applications.</p>
             </div>
@@ -132,6 +140,153 @@
                     <span>Save & Authenticate Spotify</span>
                 </button>
                 <p id="spotify-status-msg" class="desc" style="margin-top: 10px; font-size: 0.8rem;"></p>
+            </div>
+        </div>
+
+        <!-- Universal Hardware Link & Scanner View -->
+        <div id="view-devices" class="view">
+            <!-- Active Hardware Status Panel -->
+            <div class="card">
+                <h3>
+                    <i data-lucide="cpu"></i>
+                    <span>Active Hardware Link</span>
+                </h3>
+                <p class="desc" style="margin-bottom: 12px;">Real-time status of the primary LED controller driving all studio color matrix, reactivity, and sequencing operations.</p>
+                
+                <div class="device-status-panel">
+                    <div class="device-status-row">
+                        <span class="device-status-label">Active Protocol</span>
+                        <span class="device-status-val" id="active-dev-proto">Flux LED (Magic Home)</span>
+                    </div>
+                    <div class="device-status-row">
+                        <span class="device-status-label">Target Address</span>
+                        <span class="device-status-val" id="active-dev-addr">192.168.1.248:5577</span>
+                    </div>
+                    <div class="device-status-row">
+                        <span class="device-status-label">Device Name / ID</span>
+                        <span class="device-status-val" id="active-dev-name">Magic Home (AK001-ZJ2145)</span>
+                    </div>
+                    <div class="device-status-row">
+                        <span class="device-status-label">Link Status</span>
+                        <span class="device-status-badge online" id="active-dev-badge">
+                            <i data-lucide="check-circle-2"></i>
+                            <span id="active-dev-status-text">ONLINE</span>
+                        </span>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 8px; margin-top: 14px;">
+                    <button id="btn-test-active-device" class="ctrl-btn accent-btn" style="flex: 1;">
+                        <i data-lucide="zap"></i>
+                        <span>Test Diode Flash</span>
+                    </button>
+                    <button id="btn-ping-active-device" class="ctrl-btn" style="flex: 1; border: 1px solid var(--border-crisp);">
+                        <i data-lucide="refresh-cw"></i>
+                        <span>Verify Link</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Universal Auto-Discovery Scanner Panel -->
+            <div class="card">
+                <h3>
+                    <i data-lucide="radar"></i>
+                    <span>Universal Network & USB Discovery Engine</span>
+                </h3>
+                <p class="desc" style="margin-bottom: 14px;">
+                    Deep subnet probe & broadcast listener for Govee LAN, WLED, Yeelight, Magic Home / Flux LED, Philips Hue, LIFX, OpenRGB, and USB COM Arduinos.
+                </p>
+
+                <button id="btn-scan-network" class="ctrl-btn accent-btn" style="width: 100%;">
+                    <i data-lucide="scan"></i>
+                    <span>Scan Network & USB for LEDs</span>
+                </button>
+
+                <div id="scan-radar-indicator" class="scanner-radar-box" style="display:none;">
+                    <div class="radar-spinner"></div>
+                    <span id="scan-radar-text">Broadcasting UDP beacons & scanning local subnet...</span>
+                </div>
+
+                <div id="discovered-devices-grid" class="discovered-grid">
+                    <!-- Discovered devices will be rendered dynamically -->
+                </div>
+            </div>
+
+            <!-- Manual Hardware Connection Form -->
+            <div class="card form-card">
+                <h3>
+                    <i data-lucide="settings-2"></i>
+                    <span>Manual Hardware Configuration</span>
+                </h3>
+                <p class="desc" style="margin-bottom: 12px;">Explicitly define custom IP, port, COM port, or webhook for any light fixture.</p>
+                
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <div>
+                        <span class="speed-label" style="display:block; margin-bottom: 4px;">Hardware Protocol:</span>
+                        <select id="manual-proto-select" class="theme-select" style="width: 100%; border: 1px solid var(--border-crisp);">
+                            <option value="flux_led">Magic Home / Flux LED (TCP 5577)</option>
+                            <option value="govee">Govee Local LAN (UDP 4003)</option>
+                            <option value="wled">WLED Lightstrip (HTTP JSON / UDP 21324)</option>
+                            <option value="yeelight">Yeelight Smart LED (TCP 55443)</option>
+                            <option value="hue">Philips Hue Bridge (REST API)</option>
+                            <option value="lifx">LIFX Smart Bulb (UDP 56700)</option>
+                            <option value="openrgb">OpenRGB SDK Server (TCP 6742)</option>
+                            <option value="serial">USB Serial / Arduino FastLED (Adalight COM)</option>
+                            <option value="webhook">Custom Webhook / HTTP Endpoint</option>
+                        </select>
+                    </div>
+
+                    <div style="display: flex; gap: 8px;">
+                        <div style="flex: 2;">
+                            <span class="speed-label" style="display:block; margin-bottom: 4px;">Target IP / Host / COM:</span>
+                            <input type="text" id="manual-ip-input" placeholder="e.g. 192.168.1.248 or COM3">
+                        </div>
+                        <div style="flex: 1;">
+                            <span class="speed-label" style="display:block; margin-bottom: 4px;">Port:</span>
+                            <input type="number" id="manual-port-input" value="5577" placeholder="5577">
+                        </div>
+                    </div>
+
+                    <div>
+                        <span class="speed-label" style="display:block; margin-bottom: 4px;">Device ID / Model / Extra Param:</span>
+                        <input type="text" id="manual-extra-input" placeholder="Optional Device ID (e.g. H6159 for Govee or Baud for COM)">
+                    </div>
+
+                    <button id="btn-save-manual-device" class="ctrl-btn accent-btn" style="margin-top: 6px;">
+                        <i data-lucide="link"></i>
+                        <span>Connect & Set as Active Hardware</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Hardware Protocol Setup Quick-Guide -->
+            <div class="card">
+                <h3>
+                    <i data-lucide="book-open"></i>
+                    <span>Brand Setup Quick-Reference</span>
+                </h3>
+                <p class="desc" style="margin-bottom: 10px;">Ensure your smart lights are configured for local LAN communication:</p>
+
+                <div class="guide-accordion">
+                    <div class="guide-item">
+                        <strong>Magic Home / Flux LED:</strong> Connects directly over TCP port 5577. Works automatically on local WiFi without extra app configuration.
+                    </div>
+                    <div class="guide-item">
+                        <strong>Govee Lights:</strong> Open the <em>Govee Home</em> smartphone app &rarr; select device &rarr; tap the top-right Settings gear &rarr; switch <strong>LAN Control</strong> to ON.
+                    </div>
+                    <div class="guide-item">
+                        <strong>Yeelight Smart Bulbs:</strong> Open the <em>Yeelight</em> app &rarr; Device &rarr; Settings icon &rarr; enable <strong>LAN Control</strong>.
+                    </div>
+                    <div class="guide-item">
+                        <strong>WLED Lightstrips:</strong> Fully open by default. Enter the IP of your ESP8266/ESP32 WLED device.
+                    </div>
+                    <div class="guide-item">
+                        <strong>OpenRGB:</strong> Launch OpenRGB on your PC &rarr; go to the 'SDK Server' tab &rarr; click 'Start Server' (runs on port 6742).
+                    </div>
+                    <div class="guide-item">
+                        <strong>Arduino / FastLED:</strong> Plug in your microcontroller via USB and upload an Adalight sketch or standard serial RGB receiver. Enter the COM port (e.g. COM3).
+                    </div>
+                </div>
             </div>
         </div>
 
