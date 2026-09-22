@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AG-9000 Anti-Gravity LED Lighting Controller</title>
-    <link rel="stylesheet" href="styles.css?v=101">
+    <title>Symphony LED Studio Workstation</title>
+    <link rel="stylesheet" href="styles.css?v=105">
     <!-- Strictly JetBrains Mono, Outfit, and Manrope. Absolutely NO Inter, Roboto, Arial -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,365 +13,430 @@
     <!-- Lucide Icons Only (Zero Emojis) -->
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
+
 <body>
-    <div class="system-chassis">
-        <!-- Top Hardware Chassis Header -->
-        <header class="chassis-header">
-            <div class="system-id-block">
-                <div class="system-status-indicator">
-                    <span class="diode active" id="diode-main-status"></span>
-                    <span id="text-bus-status">BUS ACTIVE</span>
+    <div class="app-container" id="app-container">
+        <!-- Top Industrial Hardware Header -->
+        <header class="studio-header">
+            <div class="brand-group">
+                <div class="brand-logo">
+                    <i data-lucide="sliders-horizontal"></i>
                 </div>
-                <div class="system-title">AG-9000 Anti-Gravity Controller</div>
-                <div class="system-revision">REV 3.2.0-HW</div>
+                <div class="brand-title-wrap">
+                    <h1>Symphony</h1>
+                    <span class="studio-badge">LED Studio Workstation</span>
+                </div>
             </div>
 
-            <div class="header-clock-bus">
-                <div class="clock-metric">
-                    <span>PORT:</span>
-                    <strong id="header-port-display">COM4 [115200 BAUD]</strong>
+            <!-- Top Real-time Audio VU Telemetry Meter -->
+            <div class="header-telemetry" id="header-telemetry" title="Real-time Audio Telemetry">
+                <div class="vu-meter-group">
+                    <div class="vu-bar" id="vu-bar-bass" style="height: 15%;"></div>
+                    <div class="vu-bar" id="vu-bar-mid" style="height: 10%;"></div>
+                    <div class="vu-bar" id="vu-bar-treble" style="height: 5%;"></div>
                 </div>
-                <div class="clock-metric">
-                    <span>DRIVER CLOCK:</span>
-                    <strong id="header-clock-display">142.85 HZ</strong>
+                <div class="telemetry-labels">
+                    <span>AUDIO <strong class="telemetry-val" id="telemetry-rms">0.00</strong></span>
+                    <span>BULB <strong class="telemetry-val" id="header-bulb-state">OFFLINE</strong></span>
                 </div>
-                <div class="clock-metric">
-                    <span>UPTIME:</span>
-                    <strong id="system-uptime">00:14:32.4</strong>
-                </div>
+            </div>
+
+            <!-- Header Theme Switcher -->
+            <div class="header-controls">
+                <select id="theme-switcher" class="theme-select" title="Switch Hardware Profile">
+                    <option value="theme-obsidian" selected>Industrial Amber [Standard]</option>
+                    <option value="theme-oled">High-Contrast Noir</option>
+                </select>
             </div>
         </header>
 
-        <!-- Asymmetric 3-Column Industrial Hardware Dashboard -->
-        <div class="dashboard-grid">
-            <!-- Left Slim Sidebar: Device Selection & Master Isolation -->
-            <aside class="sidebar-panel">
-                <!-- Hardware Power Isolation Switch -->
-                <div class="panel-section">
-                    <div class="section-label">
-                        <i data-lucide="power"></i>
-                        <span>Hardware Isolation</span>
-                    </div>
-                    <div class="master-power-card">
-                        <button id="btn-master-power" class="master-toggle-btn powered-on">
-                            <i data-lucide="zap"></i>
-                            <span id="label-master-power">EMITTER BUS ONLINE</span>
-                        </button>
-                        <div class="diag-row">
-                            <span class="diag-label">Isolation Relay:</span>
-                            <span class="diag-value highlight" id="relay-status">ENGAGED</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Device Bus Selector -->
-                <div class="panel-section">
-                    <div class="section-label">
-                        <i data-lucide="cpu"></i>
-                        <span>Device Bus Selection</span>
-                    </div>
-                    <div class="device-bus-list">
-                        <div class="device-item active" data-device-id="dev-core">
-                            <div class="device-item-head">
-                                <span class="device-name">Primary Magnetic Emitter</span>
-                                <span class="diode active"></span>
-                            </div>
-                            <span class="device-meta">ADDR 0x48 | SOLENOID ARRAY</span>
-                        </div>
-                        <div class="device-item" data-device-id="dev-diodes">
-                            <div class="device-item-head">
-                                <span class="device-name">RGB Matrix Ring 16-CH</span>
-                                <span class="diode active"></span>
-                            </div>
-                            <span class="device-meta">ADDR 0x52 | OPTICAL BUS</span>
-                        </div>
-                        <div class="device-item" data-device-id="dev-hall">
-                            <div class="device-item-head">
-                                <span class="device-name">Tri-Axis Hall Sensor Array</span>
-                                <span class="diode active"></span>
-                            </div>
-                            <span class="device-meta">ADDR 0x60 | FEEDBACK LOOP</span>
-                        </div>
-                        <div class="device-item" data-device-id="dev-wifi">
-                            <div class="device-item-head">
-                                <span class="device-name">Bulb Bridge Link</span>
-                                <span class="diode" id="diode-bulb-bridge"></span>
-                            </div>
-                            <span class="device-meta" id="bulb-ip-display">192.168.1.248</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Calibration Procedures -->
-                <div class="panel-section">
-                    <div class="section-label">
-                        <i data-lucide="sliders"></i>
-                        <span>Calibration Routines</span>
-                    </div>
-                    <div class="hw-btn-group">
-                        <button id="btn-cal-lev" class="hw-btn primary">
-                            <i data-lucide="crosshair"></i>
-                            <span>Calibrate Levitation</span>
-                        </button>
-                        <button id="btn-zero-bias" class="hw-btn">
-                            <i data-lucide="target"></i>
-                            <span>Zero Sensor Bias</span>
-                        </button>
-                        <button id="btn-flux-purge" class="hw-btn">
-                            <i data-lucide="refresh-cw"></i>
-                            <span>Purge Residual Flux</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Core Electrical Diagnostics Stack -->
-                <div class="panel-section" style="margin-top: auto;">
-                    <div class="section-label">
-                        <i data-lucide="activity"></i>
-                        <span>Electrical Diagnostics</span>
-                    </div>
-                    <div class="diagnostics-stack">
-                        <div class="diag-row">
-                            <span class="diag-label">DC Bus Voltage:</span>
-                            <span class="diag-value highlight">48.24 V</span>
-                        </div>
-                        <div class="diag-row">
-                            <span class="diag-label">Coil Resistance:</span>
-                            <span class="diag-value">4.18 Ω</span>
-                        </div>
-                        <div class="diag-row">
-                            <span class="diag-label">Driver Frequency:</span>
-                            <span class="diag-value">142.8 HZ</span>
-                        </div>
-                        <div class="diag-row">
-                            <span class="diag-label">Core Temperature:</span>
-                            <span class="diag-value highlight" id="diag-core-temp">41.8 °C</span>
-                        </div>
-                    </div>
-                </div>
-            </aside>
-
-            <!-- Center Wide Panel: Spatial Levitation & RGB Matrix Controls -->
-            <main class="main-console-panel">
-                <!-- Spatial Levitation Console -->
-                <section class="console-card">
-                    <div class="console-card-header">
-                        <div class="card-title-group">
-                            <i data-lucide="compass" style="width:16px; height:16px; color:var(--accent);"></i>
-                            <h2 class="card-title">Spatial Levitation Controls</h2>
-                        </div>
-                        <span class="card-tag">PID SERVO ACTIVE</span>
-                    </div>
-
-                    <div class="spatial-workspace">
-                        <!-- Z-Axis Interactive Levitation Chamber -->
-                        <div class="elevation-visualizer">
-                            <div class="chamber-grid"></div>
-                            <div class="flux-field-lines"></div>
-                            <div class="levitating-orb" id="levitating-orb" style="bottom: 50%;">
-                                <div class="orb-ring"></div>
-                            </div>
-                            <div class="emitter-coil-base"></div>
-                            <div class="elevation-readout-overlay">
-                                Z: <span id="visual-z-height">+18.5</span> mm
-                            </div>
-                        </div>
-
-                        <!-- Axis Control Sliders -->
-                        <div class="spatial-axis-controls">
-                            <!-- Z-Axis Height Slider -->
-                            <div class="axis-slider-row">
-                                <div class="slider-label-bar">
-                                    <span class="slider-name">Z-Axis Displacement Bias</span>
-                                    <span class="slider-val" id="val-z-height">18.5 mm</span>
-                                </div>
-                                <input type="range" class="hw-slider" id="slider-z-height" min="5" max="35" step="0.1" value="18.5">
-                            </div>
-
-                            <!-- Resonance Drive Frequency -->
-                            <div class="axis-slider-row">
-                                <div class="slider-label-bar">
-                                    <span class="slider-name">Coil Drive Frequency</span>
-                                    <span class="slider-val" id="val-drive-freq">142.8 Hz</span>
-                                </div>
-                                <input type="range" class="hw-slider" id="slider-drive-freq" min="80" max="240" step="0.1" value="142.8">
-                            </div>
-
-                            <!-- PID Damping Constant -->
-                            <div class="axis-slider-row">
-                                <div class="slider-label-bar">
-                                    <span class="slider-name">PID Damping Gain (Kd)</span>
-                                    <span class="slider-val" id="val-damping-gain">0.84</span>
-                                </div>
-                                <input type="range" class="hw-slider" id="slider-damping-gain" min="0.10" max="2.00" step="0.01" value="0.84">
-                            </div>
-
-                            <!-- Magnetic Levitation Operating Modes -->
-                            <div class="mode-segmented-bar">
-                                <button class="mode-btn active" data-mode="lock">Zero-G Lock</button>
-                                <button class="mode-btn" data-mode="harmonic">Harmonic Osc</button>
-                                <button class="mode-btn" data-mode="kinetic">Kinetic Pulse</button>
-                                <button class="mode-btn" data-mode="manual">Manual Bias</button>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- RGB Matrix Array Console -->
-                <section class="console-card">
-                    <div class="console-card-header">
-                        <div class="card-title-group">
-                            <i data-lucide="circle-dot" style="width:16px; height:16px; color:var(--accent);"></i>
-                            <h2 class="card-title">RGB Matrix Array</h2>
-                        </div>
-                        <span class="card-tag">16-DIODE PERIMETER</span>
-                    </div>
-
-                    <div class="matrix-workspace">
-                        <!-- Physical Circular Matrix Array Layout -->
-                        <div class="matrix-ring-container" id="matrix-ring-container">
-                            <div class="matrix-ring-hub">
-                                <span class="hub-metric-title">ACTIVE</span>
-                                <span class="hub-metric-val" id="active-diode-count">16 / 16</span>
-                            </div>
-                            <!-- 16 Diodes dynamically placed via JS math -->
-                        </div>
-
-                        <!-- Matrix Tuning Controls -->
-                        <div class="matrix-controls-column">
-                            <div class="axis-slider-row">
-                                <div class="slider-label-bar">
-                                    <span class="slider-name">Array Strobe Frequency</span>
-                                    <span class="slider-val" id="val-strobe-freq">0.0 Hz (Solid)</span>
-                                </div>
-                                <input type="range" class="hw-slider" id="slider-strobe-freq" min="0" max="120" step="1" value="0">
-                            </div>
-
-                            <div class="axis-slider-row">
-                                <div class="slider-label-bar">
-                                    <span class="slider-name">Photometric Luminosity Output</span>
-                                    <span class="slider-val" id="val-matrix-lumen">100%</span>
-                                </div>
-                                <input type="range" class="hw-slider" id="slider-matrix-lumen" min="0" max="100" step="1" value="100">
-                            </div>
-
-                            <div class="axis-slider-row">
-                                <div class="slider-label-bar">
-                                    <span class="slider-name">Diode Pulse Width Modulation Duty</span>
-                                    <span class="slider-val" id="val-pwm-duty">92%</span>
-                                </div>
-                                <input type="range" class="hw-slider" id="slider-pwm-duty" min="10" max="100" step="1" value="92">
-                            </div>
-
-                            <!-- Hardware Trigger Action Bar -->
-                            <div class="quick-trigger-bar">
-                                <button id="btn-all-diodes-on" class="hw-btn primary">
-                                    <i data-lucide="check-square"></i>
-                                    <span>All Diodes Active</span>
-                                </button>
-                                <button id="btn-all-diodes-off" class="hw-btn">
-                                    <i data-lucide="square"></i>
-                                    <span>Blackout Array</span>
-                                </button>
-                                <button id="btn-strobe-sync" class="hw-btn">
-                                    <i data-lucide="radio"></i>
-                                    <span>Levitation Sync</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            </main>
-
-            <!-- Right Panel: Live LED Telemetry & Hardware Log -->
-            <aside class="telemetry-panel">
-                <!-- Magnetic Field Emitter Status Readouts -->
-                <div class="panel-section">
-                    <div class="section-label">
-                        <i data-lucide="gauge"></i>
-                        <span>Magnetic Field Emitter Status</span>
-                    </div>
-
-                    <div class="telemetry-metrics-grid">
-                        <div class="telemetry-metric-box">
-                            <span class="metric-box-title">Flux Density</span>
-                            <span class="metric-box-value" id="tele-flux-density">1,428.6<span class="metric-box-unit">G</span></span>
-                        </div>
-                        <div class="telemetry-metric-box">
-                            <span class="metric-box-title">Levitation Gap</span>
-                            <span class="metric-box-value" id="tele-gap-height">18.52<span class="metric-box-unit">mm</span></span>
-                        </div>
-                        <div class="telemetry-metric-box">
-                            <span class="metric-box-title">Current Draw</span>
-                            <span class="metric-box-value" id="tele-current-draw">2.84<span class="metric-box-unit">A</span></span>
-                        </div>
-                        <div class="telemetry-metric-box">
-                            <span class="metric-box-title">Coil Thermal</span>
-                            <span class="metric-box-value" id="tele-coil-temp">41.8<span class="metric-box-unit">°C</span></span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Real-time Oscilloscope Telemetry Plot -->
-                <div class="panel-section">
-                    <div class="section-label">
-                        <i data-lucide="waveform"></i>
-                        <span>Hall Sensor Waveform Telemetry</span>
-                    </div>
-                    <div class="oscilloscope-card">
-                        <div class="oscilloscope-header">
-                            <span class="diag-label">Ch 1: Tri-Axis Hall Field</span>
-                            <span class="diag-value highlight" id="tele-flux-rms">RMS 0.0034</span>
-                        </div>
-                        <div class="canvas-container">
-                            <canvas id="oscilloscope-canvas" width="300" height="120"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Hardware Event Log Stream -->
-                <div class="panel-section event-log-card">
-                    <div class="section-label">
-                        <i data-lucide="terminal"></i>
-                        <span>Hardware Event Log</span>
-                    </div>
-                    <div class="log-stream" id="log-stream">
-                        <div class="log-entry">
-                            <span class="log-time">[21:12:00.002]</span>
-                            <span class="log-msg">SYSTEM BUS INITIALIZED ON COM4</span>
-                        </div>
-                        <div class="log-entry">
-                            <span class="log-time">[21:12:00.124]</span>
-                            <span class="log-msg">SOLENOID ARRAY CALIBRATED (142.8 HZ)</span>
-                        </div>
-                        <div class="log-entry alert">
-                            <span class="log-time">[21:12:00.288]</span>
-                            <span class="log-msg">EMITTER BUS ONLINE: 48.24V APPLIED</span>
-                        </div>
-                        <div class="log-entry">
-                            <span class="log-time">[21:12:00.410]</span>
-                            <span class="log-msg">16-DIODE MATRIX RING LINKED (PWM 92%)</span>
-                        </div>
-                    </div>
-                </div>
-            </aside>
+        <!-- Navigation Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" data-target="dash">
+                <i data-lucide="layout-dashboard"></i>
+                <span>Master Bus</span>
+            </button>
+            <button class="tab-btn" data-target="colors">
+                <i data-lucide="palette"></i>
+                <span>Color Matrix</span>
+            </button>
+            <button class="tab-btn" data-target="seqs">
+                <i data-lucide="list-ordered"></i>
+                <span>Sequencer</span>
+            </button>
+            <button class="tab-btn" data-target="music">
+                <i data-lucide="activity"></i>
+                <span>Audio Reactivity</span>
+            </button>
+            <button class="tab-btn" data-target="screen">
+                <i data-lucide="monitor"></i>
+                <span>Screen Sampler</span>
+            </button>
+            <button class="tab-btn" data-target="arrange">
+                <i data-lucide="music-2"></i>
+                <span>DAW Arranger</span>
+            </button>
         </div>
 
-        <!-- Bottom Hardware Status Bar -->
-        <footer class="chassis-footer">
-            <div class="footer-tags">
-                <span>SYSTEM STATE: <strong>NORMAL</strong></span>
-                <span>FAILSAFE RELAY: <strong>ARMED</strong></span>
-                <span>THERMAL SHIELD: <strong>NOMINAL</strong></span>
+        <!-- Dashboard View -->
+        <div id="view-dash" class="view active">
+            <div class="power-buttons">
+                <button id="btn-on" class="ctrl-btn success-btn">
+                    <i data-lucide="power"></i>
+                    <span>Hardware Power ON</span>
+                </button>
+                <button id="btn-off" class="ctrl-btn danger-btn">
+                    <i data-lucide="power-off"></i>
+                    <span>Hardware Power OFF</span>
+                </button>
             </div>
-            <div class="footer-tags">
-                <span>LATENCY: <strong>1.4 MS</strong></span>
-                <span>FIRMWARE: <strong>v3.2.0-PROD</strong></span>
+            <div class="card status-card">
+                <div class="system-stats">
+                    <span id="system-status">Disconnected (Checking server daemon...)</span> |
+                    <span id="bulb-status" style="color: var(--accent-danger);">Bulb: Offline</span>
+                    <button id="btn-bulb-retry" onclick="retryBulbConnect()" style="display:none; margin-left:8px;" class="small-btn">
+                        <i data-lucide="refresh-cw"></i>
+                        <span>Retry Hardware Link</span>
+                    </button>
+                </div>
+                <p class="desc" style="margin-top: 10px;">Global hotkey listener active. Hardware color matrix and step sequences trigger across all PC applications.</p>
             </div>
-        </footer>
+
+            <div class="card">
+                <h3>
+                    <i data-lucide="pipette"></i>
+                    <span>Direct Hardware Color Test</span>
+                </h3>
+                <p class="desc" style="margin-bottom: 12px;">Test hardware diode output directly without saving to registry.</p>
+                <input type="color" id="quick-color" value="#ff9e00">
+            </div>
+
+            <div class="card form-card">
+                <h3>
+                    <i data-lucide="radio"></i>
+                    <span>Spotify API Synchronization</span>
+                </h3>
+                <p class="desc" style="margin-bottom: 14px;">Link Spotify developer credentials to lock the DAW Arranger and beat synchronizer to playback.</p>
+                <input type="text" id="spotify-client-id" placeholder="Spotify Client ID">
+                <input type="password" id="spotify-client-secret" placeholder="Spotify Client Secret">
+                <button id="btn-spotify-login" class="ctrl-btn accent-btn" style="margin-top: 8px;">
+                    <i data-lucide="key"></i>
+                    <span>Save & Authenticate Spotify</span>
+                </button>
+                <p id="spotify-status-msg" class="desc" style="margin-top: 10px; font-size: 0.8rem;"></p>
+            </div>
+        </div>
+
+        <!-- Colors View -->
+        <div id="view-colors" class="view">
+            <div class="card form-card">
+                <h3>
+                    <i data-lucide="plus-circle"></i>
+                    <span>Add Color Preset</span>
+                </h3>
+                <input type="text" id="color-name" placeholder="Preset Name (e.g. Harsh Amber)">
+                <div class="color-picker-wrapper">
+                    <input type="color" id="color-hex" value="#ff9e00">
+                </div>
+                <input type="text" id="color-hotkey" class="hotkey-input" placeholder="Click here & press hotkey..." readonly>
+                <button id="btn-save-color" class="ctrl-btn accent-btn">
+                    <i data-lucide="save"></i>
+                    <span>Commit Color Preset</span>
+                </button>
+                <p id="color-error" class="error-msg"></p>
+            </div>
+            <p class="section-title">
+                <i data-lucide="grid"></i>
+                <span>Registered Color Presets</span>
+            </p>
+            <div id="colors-list" class="list-container"></div>
+        </div>
+
+        <!-- Sequences View -->
+        <div id="view-seqs" class="view">
+            <div class="card form-card">
+                <h3>
+                    <i data-lucide="git-commit"></i>
+                    <span>Sequence Step Builder</span>
+                </h3>
+                <input type="text" id="seq-name" placeholder="Sequence Identifier (e.g. Strobe Cycle)">
+                <input type="text" id="seq-hotkey" class="hotkey-input" placeholder="Click here & press hotkey..." readonly>
+
+                <div class="timeline-builder">
+                    <p class="section-title" style="margin-top: 12px;">Timeline Steps:</p>
+                    <div id="seq-steps-container"></div>
+                    <button id="btn-add-step" class="small-btn" style="margin-top: 8px;">
+                        <i data-lucide="plus"></i>
+                        <span>Add Color Step</span>
+                    </button>
+                </div>
+
+                <label style="color:var(--text-main); font-size:0.85rem; margin-top:15px; display:inline-flex; align-items:center; gap:8px; cursor:pointer;">
+                    <input type="checkbox" id="seq-loop" checked>
+                    <span>Loop indefinitely (uncheck to return to base level)</span>
+                </label>
+
+                <button id="btn-save-seq" class="ctrl-btn accent-btn" style="margin-top:20px;">
+                    <i data-lucide="save"></i>
+                    <span>Commit Sequence</span>
+                </button>
+                <p id="seq-error" class="error-msg"></p>
+            </div>
+            <p class="section-title">
+                <i data-lucide="list"></i>
+                <span>Registered Step Sequences</span>
+            </p>
+            <div id="seqs-list" class="list-container"></div>
+        </div>
+
+        <!-- Music Sync View -->
+        <div id="view-music" class="view">
+            <div class="card form-card">
+                <h3>
+                    <i data-lucide="audio-waveform"></i>
+                    <span>WASAPI Loopback Audio Reactivity Subsystem</span>
+                </h3>
+                <p class="desc" style="margin-bottom:18px;">Real-time audio telemetry tracking computer output via WASAPI loopback with discrete frequency band analysis.</p>
+
+                <p class="section-title">Audio Input Bus:</p>
+                <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 14px;">
+                    <select id="audio-device-select" style="flex: 1; margin-bottom:0;">
+                        <option value="">Querying Hardware Audio Buses...</option>
+                    </select>
+                    <button id="btn-scan-devices" class="small-btn" title="Rescan hardware buses" style="height: 40px; padding: 0 14px;">
+                        <i data-lucide="refresh-cw"></i>
+                    </button>
+                </div>
+
+                <p class="section-title">Filter Tracking Preset:</p>
+                <select id="audio-preset" style="margin-bottom: 16px;">
+                    <option value="Balanced" selected>Balanced (Standard telemetry envelope)</option>
+                    <option value="Punchy">Punchy (Fast transient bass attack)</option>
+                    <option value="Chill">Chill (Linear decay filtering)</option>
+                </select>
+
+                <p class="section-title">Base Carrier Filter:</p>
+                <select id="audio-color-select" style="margin-bottom: 16px;"></select>
+
+                <div class="slider-wrapper">
+                    <span class="speed-label">Sensitivity / Gain Multiplier:</span>
+                    <input type="range" id="audio-sensitivity" min="1" max="50" value="15">
+                </div>
+
+                <div style="margin-top: 20px; display:flex; gap:10px;">
+                    <button id="btn-audio-start" class="ctrl-btn accent-btn">
+                        <i data-lucide="play"></i>
+                        <span>Start Audio Reactivity</span>
+                    </button>
+                    <button id="btn-audio-stop" class="ctrl-btn danger-btn" style="display:none; flex:0.4;">
+                        <i data-lucide="square"></i>
+                        <span>Halt</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="card form-card">
+                <h3>
+                    <i data-lucide="sparkles"></i>
+                    <span>Spotify Audio Analysis Beat Synchronizer</span>
+                </h3>
+                <p class="desc" style="margin-bottom: 14px;">
+                    Phase-locks hardware LED pulses directly to Spotify tempo structures and section transitions (verse, chorus, bridge).
+                </p>
+
+                <div id="beat-sync-now-playing" style="background: var(--bg-input); border: 1px solid var(--border-crisp); border-radius: var(--radius-sm); padding: 12px 16px; margin-bottom: 16px; font-size: 0.85rem; color: var(--text-muted); font-family: var(--mono-font);">
+                    <span id="beat-sync-track-label">No active Spotify stream detected.</span>
+                </div>
+
+                <div style="display:flex; gap:10px;">
+                    <button id="btn-beat-sync-start" class="ctrl-btn accent-btn" style="flex: 1;">
+                        <i data-lucide="play"></i>
+                        <span>Start Beat Synchronizer</span>
+                    </button>
+                    <button id="btn-beat-sync-stop" class="ctrl-btn danger-btn" style="display:none; flex: 0.4;">
+                        <i data-lucide="square"></i>
+                        <span>Halt</span>
+                    </button>
+                </div>
+                <p id="beat-sync-status" style="margin-top:10px; font-size:0.8rem; color:var(--text-muted); min-height:1.2em; font-family: var(--mono-font);"></p>
+            </div>
+        </div>
+
+        <!-- Screen Sync View -->
+        <div id="view-screen" class="view">
+            <div class="card form-card">
+                <h3>
+                    <i data-lucide="monitor"></i>
+                    <span>Display Screen Dominant Color Extraction</span>
+                </h3>
+                <p class="desc" style="margin-bottom:18px;">Extracts dominant color matrices from the primary display adapter in real time and bridges them to the hardware bulb.</p>
+
+                <label style="color:var(--text-main); font-size:0.85rem; margin-bottom:10px; display:inline-flex; align-items:center; gap:8px; cursor:pointer;">
+                    <input type="checkbox" id="screen-audio-combine">
+                    <span>Combine with Audio Reactivity (Modulate Luminance by Acoustic Energy)</span>
+                </label>
+
+                <label style="color:var(--text-main); font-size:0.85rem; margin-bottom:15px; display:inline-flex; align-items:center; gap:8px; cursor:pointer;">
+                    <input type="checkbox" id="screen-scale-brightness">
+                    <span>Scale Diode Power by Screen Luminance</span>
+                </label>
+
+                <p class="section-title">Audio Input Bus (If Combined):</p>
+                <select id="screen-audio-device-select" style="margin-bottom: 16px;">
+                    <option value="">Querying Hardware Audio Buses...</option>
+                </select>
+
+                <div class="slider-wrapper">
+                    <span class="speed-label">Sensitivity / Gain Multiplier:</span>
+                    <input type="range" id="screen-sensitivity" min="1" max="50" value="25">
+                </div>
+
+                <div class="slider-wrapper" id="min-brightness-wrap" style="display:none;">
+                    <span class="speed-label">Noise Floor Floor (Silence Limit):</span>
+                    <input type="range" id="screen-min-brightness" min="0" max="100" value="0">
+                    <span id="min-brightness-val" style="color:var(--text-muted); font-size:0.8rem; margin-top:4px; display:block; font-family:var(--mono-font);">0%</span>
+                </div>
+
+                <div style="margin-top: 20px; display:flex; gap:10px;">
+                    <button id="btn-screen-start" class="ctrl-btn accent-btn">
+                        <i data-lucide="play"></i>
+                        <span>Start Screen Extraction</span>
+                    </button>
+                    <button id="btn-screen-stop" class="ctrl-btn danger-btn" style="display:none; flex:0.4;">
+                        <i data-lucide="square"></i>
+                        <span>Halt</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Studio Arranger View -->
+        <div id="view-arrange" class="view">
+            <div class="card form-card" style="padding: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+                    <!-- Left: Song Info -->
+                    <div>
+                        <button id="btn-open-library" class="small-btn" style="margin-bottom: 6px;">
+                            <i data-lucide="disc"></i>
+                            <span>Track: <span id="arranger-current-song-label">Unassigned (Sandbox)</span></span>
+                        </button>
+                        <h3 style="margin:0; font-size: 1.15rem;">Studio Light Arranger DAW</h3>
+                    </div>
+
+                    <!-- Middle: Transport Controls -->
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <button id="btn-arrange-record" class="arranger-btn danger-btn">
+                            <i data-lucide="circle-dot"></i>
+                            <span>Rec</span>
+                        </button>
+                        <button id="btn-arrange-play" class="arranger-btn success-btn">
+                            <i data-lucide="play"></i>
+                            <span>Play</span>
+                        </button>
+                        <button id="btn-arrange-save" class="arranger-btn accent-btn">
+                            <i data-lucide="save"></i>
+                            <span>Save</span>
+                        </button>
+                    </div>
+
+                    <!-- Right: Tools -->
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <label style="color:var(--text-main); font-size:0.8rem; display:flex; align-items:center; gap:5px; cursor:pointer;">
+                            <input type="checkbox" id="arrange-auto-toggle"> Auto Mode
+                        </label>
+                        <select id="arrange-snap" class="theme-select" style="padding:4px 8px !important;">
+                            <option value="0">Grid: Off</option>
+                            <option value="125">Grid: 1/8s</option>
+                            <option value="250">Grid: 1/4s</option>
+                            <option value="500">Grid: 1/2s</option>
+                            <option value="1000">Grid: 1s</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="arranger-layout">
+                    <!-- Left Palette Sidebar -->
+                    <div class="arranger-sidebar" id="arranger-palette">
+                        <p class="section-title" style="text-align: center; margin-bottom: 10px;">Color Palette</p>
+                        <button id="btn-arrange-clear" class="small-btn" style="width: 100%; margin-bottom: 12px;">Clear Track</button>
+                    </div>
+
+                    <!-- Center Timeline Area -->
+                    <div class="arranger-timeline-area">
+                        <div class="timeline-container" id="timeline-container" style="flex: 1; position: relative; background: var(--bg-input); border-radius: var(--radius-sm); overflow-x: auto; overflow-y: hidden;">
+                            <div id="timeline-playhead" class="draggable-playhead" style="position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--accent-primary); z-index: 10; box-shadow: 0 0 10px var(--accent-primary);"></div>
+                            <div id="timeline-tracks" style="position: absolute; left: 0; top: 0; bottom: 0; width: 100%; min-width: 1200px; background-image: linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 5% 100%;">
+                                <div id="timeline-ruler" style="height: 24px; background: rgba(0,0,0,0.6); border-bottom: 1px solid var(--border-crisp); position: sticky; top: 0; z-index: 200; cursor: pointer;"></div>
+                                <canvas id="waveform-canvas" style="position: absolute; left: 0; top: 24px; width: 100%; height: calc(100% - 24px); z-index: 1; opacity: 0.6; pointer-events: none;"></canvas>
+                                <svg id="automation-svg" style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; z-index: 150;"></svg>
+                                <div id="blocks-container" style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none;"></div>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-top: 6px; font-family: var(--mono-font);">
+                            <span style="font-size: 0.78rem; color: var(--text-muted);">0:00</span>
+                            <span style="font-size: 0.78rem; color: var(--text-muted);" id="timeline-duration-label">30:00</span>
+                        </div>
+                    </div>
+
+                    <!-- Right Launchpad Sidebar -->
+                    <div class="arranger-sidebar" id="arranger-legend" style="width: 170px;">
+                        <p class="section-title" style="text-align: center; margin-bottom: 10px;">Launchpad</p>
+                        <div id="launchpad-keys" style="display:flex; flex-direction: column; gap: 6px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
-    <!-- Interface Logic & Hardware Bridge -->
-    <script src="app.js?v=101"></script>
+    <!-- Hotkey Rebind Overlay -->
+    <div id="rebind-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.92); z-index:999; justify-content:center; align-items:center; flex-direction:column;">
+        <h2 style="margin-bottom:5px; color:var(--text-main); font-family:var(--font-ui);">Recording Hotkey</h2>
+        <p style="color:var(--text-muted); margin-bottom:20px; font-family:var(--mono-font);">Press any key combination now...</p>
+        <button onclick="document.getElementById('rebind-overlay').style.display='none'" class="small-btn">Cancel</button>
+    </div>
+
+    <!-- Song Library Overlay -->
+    <div id="library-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.92); z-index:999; justify-content:center; align-items:center;">
+        <div class="card form-card" style="width: 500px; max-width: 90%; max-height: 80vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+                <h2 style="margin: 0; font-size:16px;">Arrangement Library</h2>
+                <button onclick="document.getElementById('library-overlay').style.display='none'" class="small-btn">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <div style="background: var(--bg-input); border: 1px solid var(--border-crisp); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 18px; text-align: center;">
+                <p style="margin: 0 0 6px 0; font-size: 0.85rem; color: var(--text-muted);">Currently Playing on Spotify:</p>
+                <h3 id="library-now-playing" style="margin: 0 0 4px 0; color: var(--text-main); font-size: 14px;">Nothing Playing</h3>
+                <p id="library-now-artist" style="margin: 0 0 12px 0; font-size: 0.85rem; color: var(--accent-primary); font-family:var(--mono-font);">-</p>
+                <button id="btn-create-arrangement" class="ctrl-btn accent-btn" style="width: 100%;">
+                    <i data-lucide="plus"></i>
+                    <span>Create Arrangement for this Song</span>
+                </button>
+            </div>
+
+            <p class="section-title">Saved Arrangements</p>
+            <div id="arrangements-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
+        </div>
+    </div>
+
+    <!-- Context Menu for Blocks -->
+    <div id="block-context-menu" style="display:none; position:fixed; z-index:9999; background:var(--bg-card); border:1px solid var(--border-crisp); border-radius:var(--radius-sm); padding:10px; width:160px;">
+        <div style="font-size:0.72rem; color:var(--text-muted); margin-bottom:6px; text-transform:uppercase; font-family:var(--mono-font);">Change Color</div>
+        <div id="context-color-list" style="max-height: 140px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px;"></div>
+        <div style="border-top:1px solid var(--border-crisp); padding-top:6px;">
+            <button id="btn-context-delete" class="small-btn" style="width:100%; color:var(--accent-danger);">Delete Block</button>
+        </div>
+    </div>
+
+    <script src="app.js?v=105"></script>
+    <script>
+        // Initialize Lucide icons on load
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            window.lucide.createIcons();
+        }
+    </script>
 </body>
+
 </html>
