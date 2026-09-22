@@ -1,3 +1,78 @@
+// Standard Hardware Color Palette (13 default essential colors)
+const STANDARD_PALETTE = [
+    { name: "Crimson Red", hex: "#ff0000", rgb: { r: 255, g: 0, b: 0 } },
+    { name: "Neon Orange", hex: "#ff6600", rgb: { r: 255, g: 102, b: 0 } },
+    { name: "Harsh Amber", hex: "#ff9e00", rgb: { r: 255, g: 158, b: 0 } },
+    { name: "Laser Yellow", hex: "#ffff00", rgb: { r: 255, g: 255, b: 0 } },
+    { name: "Acid Lime", hex: "#88ff00", rgb: { r: 136, g: 255, b: 0 } },
+    { name: "Matrix Green", hex: "#00ff44", rgb: { r: 0, g: 255, b: 68 } },
+    { name: "High-Vis Cyan", hex: "#00f0ff", rgb: { r: 0, g: 240, b: 255 } },
+    { name: "Deep Cobalt", hex: "#0044ff", rgb: { r: 0, g: 68, b: 255 } },
+    { name: "Ultraviolet", hex: "#8800ff", rgb: { r: 136, g: 0, b: 255 } },
+    { name: "Cyber Magenta", hex: "#ff00bb", rgb: { r: 255, g: 0, b: 187 } },
+    { name: "Neon Pink", hex: "#ff3388", rgb: { r: 255, g: 51, b: 136 } },
+    { name: "Pure White", hex: "#ffffff", rgb: { r: 255, g: 255, b: 255 } },
+    { name: "Warm White", hex: "#ffe4b5", rgb: { r: 255, g: 228, b: 181 } }
+];
+
+// Hardware Toast Notification System (Zero default white browser popups)
+function showToast(title, message, isAlert = false, duration = 3500) {
+    const container = document.getElementById('hw-toast-container');
+    if (!container) return;
+    const toast = document.createElement('div');
+    toast.className = `hw-toast${isAlert ? ' alert' : ''}`;
+    toast.innerHTML = `
+        <i data-lucide="${isAlert ? 'alert-triangle' : 'info'}" class="hw-toast-icon"></i>
+        <div class="hw-toast-body">
+            <span class="hw-toast-title">${title}</span>
+            <span class="hw-toast-msg">${message}</span>
+        </div>
+        <button class="hw-toast-close" title="Dismiss"><i data-lucide="x"></i></button>
+    `;
+    const closeBtn = toast.querySelector('.hw-toast-close');
+    const removeToast = () => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+        setTimeout(() => toast.remove(), 200);
+    };
+    closeBtn.addEventListener('click', removeToast);
+    container.appendChild(toast);
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons({ root: toast });
+    }
+    setTimeout(removeToast, duration);
+}
+
+function showHardwareModal(title, message, onConfirm = null) {
+    const overlay = document.getElementById('hw-modal-overlay');
+    const titleEl = document.getElementById('hw-modal-title');
+    const msgEl = document.getElementById('hw-modal-message');
+    const closeBtn = document.getElementById('hw-modal-close');
+    const confirmBtn = document.getElementById('hw-modal-confirm');
+    if (!overlay || !titleEl || !msgEl) {
+        showToast(title, message, true);
+        return;
+    }
+    titleEl.textContent = title;
+    msgEl.textContent = message;
+    overlay.style.display = 'flex';
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons({ root: overlay });
+    }
+
+    const closeModal = () => {
+        overlay.style.display = 'none';
+        if (onConfirm) onConfirm();
+    };
+    closeBtn.onclick = closeModal;
+    confirmBtn.onclick = closeModal;
+}
+
+// Override window.alert so no default white popups ever appear
+window.alert = function (message) {
+    showToast('Hardware Notice', String(message), true);
+};
+
 // State
 let config = { colors: [], sequences: [] };
 
@@ -10,10 +85,86 @@ const audioDeviceSelect = document.getElementById('audio-device-select');
 
 const BASE_URL = window.location.protocol === 'file:' ? 'http://localhost:8090' : '';
 
+function seedStandardColors(notify = true) {
+    let addedCount = 0;
+    if (!config.colors) config.colors = [];
+    STANDARD_PALETTE.forEach(c => {
+        const exists = config.colors.some(existing => existing.hex.toLowerCase() === c.hex.toLowerCase());
+        if (!exists) {
+            config.colors.push({
+                id: 'c_std_' + c.name.toLowerCase().replace(/[^a-z0-9]/g, '_'),
+                name: c.name,
+                hex: c.hex,
+                rgb: { ...c.rgb },
+                hotkey: ''
+            });
+            addedCount++;
+        }
+    });
+    if (addedCount > 0) {
+        saveConfig();
+        renderLists();
+        if (notify) showToast('Palette Loaded', `Added ${addedCount} standard color presets to registry.`);
+    } else if (notify) {
+        showToast('Palette Current', 'Standard color palette is already registered.');
+    }
+}
+
+function initStandardSwatches() {
+    const testContainer = document.getElementById('quick-swatches-test');
+    const presetContainer = document.getElementById('quick-swatches-preset');
+
+    if (testContainer) {
+        testContainer.innerHTML = STANDARD_PALETTE.map(c => `
+            <div class="swatch-btn" data-hex="${c.hex}" data-name="${c.name}" style="background-color: ${c.hex};" title="Test ${c.name} (${c.hex})"></div>
+        `).join('');
+
+        testContainer.querySelectorAll('.swatch-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                testContainer.querySelectorAll('.swatch-btn').forEach(b => b.classList.remove('active-swatch'));
+                btn.classList.add('active-swatch');
+                const hex = btn.getAttribute('data-hex');
+                const name = btn.getAttribute('data-name');
+                if (quickColor) quickColor.value = hex;
+                const rgb = hexToRgb(hex);
+                testColor(rgb);
+                showToast('Hardware Diode Output', `Outputting ${name} (${hex}) to bulb array.`);
+            });
+        });
+    }
+
+    if (presetContainer) {
+        presetContainer.innerHTML = STANDARD_PALETTE.map(c => `
+            <div class="swatch-btn" data-hex="${c.hex}" data-name="${c.name}" style="background-color: ${c.hex};" title="Select ${c.name}"></div>
+        `).join('');
+
+        presetContainer.querySelectorAll('.swatch-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const hex = btn.getAttribute('data-hex');
+                const name = btn.getAttribute('data-name');
+                const nameInput = document.getElementById('color-name');
+                const hexInput = document.getElementById('color-hex');
+                if (nameInput) nameInput.value = name;
+                if (hexInput) hexInput.value = hex;
+            });
+        });
+    }
+
+    const btnSeed = document.getElementById('btn-seed-standard-colors');
+    if (btnSeed) {
+        btnSeed.addEventListener('click', () => seedStandardColors(true));
+    }
+}
+
 async function fetchConfig() {
     try {
         const res = await fetch(`${BASE_URL}/api/config`);
         config = await res.json();
+
+        // Automatically seed standard colors if user has none
+        if (!config.colors || config.colors.length === 0) {
+            seedStandardColors(false);
+        }
 
         sysStatus.innerText = 'Server: Online';
         sysStatus.style.color = '#00ff88';
@@ -185,7 +336,10 @@ function updateAudioSync() {
 }
 
 btnAudioStart.addEventListener('click', () => {
-    if (config.colors.length === 0) return alert('Create a color first!');
+    if (!config.colors || config.colors.length === 0) {
+        showToast('Registry Empty', 'No colors available. Click "Load Standard Color Palette" or add a color preset.', true);
+        return;
+    }
     fetch(`${BASE_URL}/api/audio_sync`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -358,11 +512,15 @@ document.getElementById('btn-save-color').addEventListener('click', () => {
     const hk = document.getElementById('color-hotkey').value;
     const rgb = hexToRgb(hex);
 
-    if (isHotkeyUsed(hk)) return err.innerText = `Error: Hotkey "${hk}" is already in use by another action!`;
+    if (isHotkeyUsed(hk)) {
+        showToast('Hotkey Conflict', `Hotkey "${hk}" is already mapped to another action!`, true);
+        return err.innerText = `Error: Hotkey "${hk}" is already in use by another action!`;
+    }
 
     const newColor = { id: 'c_' + Date.now(), name: name, hex: hex, rgb: rgb, hotkey: hk };
     config.colors.push(newColor);
     saveConfig();
+    showToast('Color Registered', `Added preset "${newColor.name}" (${newColor.hex}) to palette.`);
 
     document.getElementById('color-name').value = '';
     document.getElementById('color-hotkey').value = '';
@@ -604,7 +762,10 @@ window.addEventListener('keydown', (e) => {
 
     if (isRebinding) {
         e.preventDefault();
-        if (isHotkeyUsed(finalKey)) { alert(`Hotkey ${finalKey} is already in use by another action!`); return; }
+        if (isHotkeyUsed(finalKey)) {
+            showToast('Hotkey Conflict', `Hotkey ${finalKey} is already in use by another action!`, true);
+            return;
+        }
         if (rebindingTarget.type === 'color') config.colors[rebindingTarget.index].hotkey = finalKey;
         else config.sequences[rebindingTarget.index].hotkey = finalKey;
         saveConfig();
@@ -1453,7 +1614,10 @@ async function fetchSpotifyCurrentlyPlaying() {
 }
 
 document.getElementById('btn-create-arrangement')?.addEventListener('click', () => {
-    if (!currentSpotifyInfo || !currentSpotifyInfo.track_id) return alert("Nothing is currently playing on Spotify!");
+    if (!currentSpotifyInfo || !currentSpotifyInfo.track_id) {
+        showToast('Spotify Inactive', 'No active song playing on Spotify. Start playback first.', true);
+        return;
+    }
 
     if (!config.arrangements) config.arrangements = [];
     const exists = config.arrangements.find(a => a.track_id === currentSpotifyInfo.track_id);
@@ -1709,7 +1873,7 @@ window.deleteArrangement = function (id) {
 
 document.getElementById('btn-arrange-save')?.addEventListener('click', () => {
     if (!arranger.currentTrackId) {
-        alert("This is a sandbox session! Please wait for a Spotify song to load before saving!");
+        showToast('Sandbox Session', 'This is a sandbox session! Please wait for a Spotify song to load before saving.', true);
         return;
     }
     let arr = config.arrangements.find(a => a.track_id === arranger.currentTrackId);
@@ -1746,7 +1910,9 @@ document.getElementById('btn-arrange-save')?.addEventListener('click', () => {
 const themeSwitcher = document.getElementById('theme-switcher');
 
 function initTheme() {
-    const savedTheme = localStorage.getItem('symphony_theme') || 'theme-obsidian';
+    let savedTheme = localStorage.getItem('symphony_theme') || 'theme-amber';
+    if (savedTheme === 'theme-obsidian') savedTheme = 'theme-amber';
+    if (savedTheme === 'theme-oled') savedTheme = 'theme-monochrome';
     document.documentElement.className = savedTheme;
     if (themeSwitcher) themeSwitcher.value = savedTheme;
 }
@@ -1756,10 +1922,12 @@ if (themeSwitcher) {
         const theme = e.target.value;
         document.documentElement.className = theme;
         localStorage.setItem('symphony_theme', theme);
+        showToast('Hardware Profile Loaded', `Switched theme to ${themeSwitcher.options[themeSwitcher.selectedIndex].text}.`);
     });
 }
 
 initTheme();
+initStandardSwatches();
 
 // Polling for telemetry & VU audio levels
 async function pollTelemetry() {

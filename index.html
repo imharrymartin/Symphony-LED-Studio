@@ -44,8 +44,12 @@
             <!-- Header Theme Switcher -->
             <div class="header-controls">
                 <select id="theme-switcher" class="theme-select" title="Switch Hardware Profile">
-                    <option value="theme-obsidian" selected>Industrial Amber [Standard]</option>
-                    <option value="theme-oled">High-Contrast Noir</option>
+                    <option value="theme-amber" selected>Harsh Amber [Standard]</option>
+                    <option value="theme-cyan">High-Vis Cyan</option>
+                    <option value="theme-emerald">Laser Emerald</option>
+                    <option value="theme-crimson">Crimson Alert</option>
+                    <option value="theme-purple">Deep Ultraviolet</option>
+                    <option value="theme-monochrome">Solar Monochrome</option>
                 </select>
             </div>
         </header>
@@ -109,6 +113,10 @@
                 </h3>
                 <p class="desc" style="margin-bottom: 12px;">Test hardware diode output directly without saving to registry.</p>
                 <input type="color" id="quick-color" value="#ff9e00">
+                <div style="margin-top: 14px;">
+                    <span class="speed-label">Standard Hardware Color Swatches:</span>
+                    <div class="quick-swatches-grid" id="quick-swatches-test"></div>
+                </div>
             </div>
 
             <div class="card form-card">
@@ -138,17 +146,27 @@
                 <div class="color-picker-wrapper">
                     <input type="color" id="color-hex" value="#ff9e00">
                 </div>
-                <input type="text" id="color-hotkey" class="hotkey-input" placeholder="Click here & press hotkey..." readonly>
+                <div style="margin-top: 10px;">
+                    <span class="speed-label">Quick Standard Swatch Palette:</span>
+                    <div class="quick-swatches-grid" id="quick-swatches-preset"></div>
+                </div>
+                <input type="text" id="color-hotkey" class="hotkey-input" placeholder="Click here & press hotkey..." readonly style="margin-top: 12px;">
                 <button id="btn-save-color" class="ctrl-btn accent-btn">
                     <i data-lucide="save"></i>
                     <span>Commit Color Preset</span>
                 </button>
                 <p id="color-error" class="error-msg"></p>
             </div>
-            <p class="section-title">
-                <i data-lucide="grid"></i>
-                <span>Registered Color Presets</span>
-            </p>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 6px;">
+                <p class="section-title" style="margin:0;">
+                    <i data-lucide="grid"></i>
+                    <span>Registered Color Presets</span>
+                </p>
+                <button id="btn-seed-standard-colors" class="small-btn">
+                    <i data-lucide="palette"></i>
+                    <span>Load Standard Color Palette</span>
+                </button>
+            </div>
             <div id="colors-list" class="list-container"></div>
         </div>
 
@@ -430,7 +448,27 @@
         </div>
     </div>
 
-    <script src="app.js?v=105"></script>
+    <!-- Hardware Toast Notification Stream -->
+    <div id="hw-toast-container" class="hw-toast-container"></div>
+
+    <!-- Hardware Alert / Prompt Modal (Replaces default white system alert) -->
+    <div id="hw-modal-overlay" class="hw-modal-overlay" style="display:none;">
+        <div class="hw-modal-card">
+            <div class="hw-modal-header">
+                <div class="hw-modal-title-group">
+                    <i data-lucide="alert-circle" class="hw-modal-icon"></i>
+                    <h3 id="hw-modal-title">Hardware Notification</h3>
+                </div>
+                <button id="hw-modal-close" class="small-btn"><i data-lucide="x"></i></button>
+            </div>
+            <p id="hw-modal-message" class="hw-modal-body"></p>
+            <div class="hw-modal-actions">
+                <button id="hw-modal-confirm" class="ctrl-btn accent-btn">Acknowledge</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js?v=106"></script>
     <script>
         // Initialize Lucide icons on load
         if (window.lucide && typeof window.lucide.createIcons === 'function') {

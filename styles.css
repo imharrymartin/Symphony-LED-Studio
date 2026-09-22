@@ -47,6 +47,72 @@
   --card-radius: 4px;
 }
 
+/* Theme 1: Harsh Amber [Standard] */
+:root, .theme-amber, .theme-obsidian {
+  --accent-primary: #ff9e00;
+  --accent-hover: #ffad26;
+  --accent-active: #e68e00;
+  --accent-dim: #332000;
+  --accent-border: #804f00;
+  --accent-glow: rgba(255, 158, 0, 0.25);
+  --accent-success: #ff9e00;
+}
+
+/* Theme 2: High-Vis Cyan */
+.theme-cyan {
+  --accent-primary: #00f0ff;
+  --accent-hover: #33f3ff;
+  --accent-active: #00c7d4;
+  --accent-dim: #002d33;
+  --accent-border: #007780;
+  --accent-glow: rgba(0, 240, 255, 0.25);
+  --accent-success: #00f0ff;
+}
+
+/* Theme 3: Laser Emerald */
+.theme-emerald {
+  --accent-primary: #00ff66;
+  --accent-hover: #33ff85;
+  --accent-active: #00d957;
+  --accent-dim: #003314;
+  --accent-border: #008033;
+  --accent-glow: rgba(0, 255, 102, 0.25);
+  --accent-success: #00ff66;
+}
+
+/* Theme 4: Crimson Alert */
+.theme-crimson {
+  --accent-primary: #ff3344;
+  --accent-hover: #ff5c6a;
+  --accent-active: #d92636;
+  --accent-dim: #330a0d;
+  --accent-border: #801a22;
+  --accent-glow: rgba(255, 51, 68, 0.25);
+  --accent-success: #ff3344;
+}
+
+/* Theme 5: Deep Ultraviolet */
+.theme-purple {
+  --accent-primary: #bf55ec;
+  --accent-hover: #cc77f0;
+  --accent-active: #a43cd1;
+  --accent-dim: #270a33;
+  --accent-border: #6b1f80;
+  --accent-glow: rgba(191, 85, 236, 0.25);
+  --accent-success: #bf55ec;
+}
+
+/* Theme 6: Solar Monochrome */
+.theme-monochrome, .theme-oled {
+  --accent-primary: #e5e5e5;
+  --accent-hover: #ffffff;
+  --accent-active: #cccccc;
+  --accent-dim: #262626;
+  --accent-border: #525252;
+  --accent-glow: rgba(255, 255, 255, 0.2);
+  --accent-success: #e5e5e5;
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -794,3 +860,207 @@ input[type="range"]:focus::-webkit-slider-thumb {
 ::-webkit-scrollbar-thumb:hover {
   background: #444444;
 }
+
+/* ==========================================================================
+   Quick Standard Swatches Grid
+   ========================================================================== */
+.quick-swatches-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(34px, 1fr));
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.swatch-btn {
+  height: 30px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-crisp);
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.1s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.swatch-btn:hover {
+  transform: translateY(-2px);
+  border-color: #ffffff;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
+}
+
+.swatch-btn:active {
+  transform: translateY(0);
+}
+
+.swatch-btn.active-swatch {
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+}
+
+/* ==========================================================================
+   Hardware Toast Notifications (Replacing ugly white popups)
+   ========================================================================== */
+.hw-toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.hw-toast {
+  pointer-events: auto;
+  min-width: 280px;
+  max-width: 420px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--accent-primary);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.85);
+  padding: 12px 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  animation: toastSlideIn 0.2s cubic-bezier(0.1, 0.9, 0.2, 1);
+  font-family: var(--font-ui);
+}
+
+.hw-toast.alert {
+  border-color: var(--accent-danger);
+}
+
+.hw-toast-icon {
+  width: 18px;
+  height: 18px;
+  stroke-width: 1.75;
+  color: var(--accent-primary);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.hw-toast.alert .hw-toast-icon {
+  color: var(--accent-danger);
+}
+
+.hw-toast-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hw-toast-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-main);
+}
+
+.hw-toast-msg {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+.hw-toast-close {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  padding: 2px;
+}
+
+.hw-toast-close:hover {
+  color: var(--text-main);
+}
+
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ==========================================================================
+   Hardware Modal Dialog (No Default White Popups)
+   ========================================================================== */
+.hw-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.88);
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.15s ease;
+}
+
+.hw-modal-card {
+  width: 420px;
+  max-width: 90%;
+  background-color: var(--bg-card);
+  border: 1px solid var(--accent-primary);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.95);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.hw-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-crisp);
+  padding-bottom: 10px;
+}
+
+.hw-modal-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hw-modal-icon {
+  width: 18px;
+  height: 18px;
+  stroke-width: 1.75;
+  color: var(--accent-primary);
+}
+
+.hw-modal-card h3 {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.hw-modal-body {
+  font-size: 12px;
+  color: var(--text-main);
+  line-height: 1.5;
+}
+
+.hw-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 6px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
